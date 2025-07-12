@@ -27,3 +27,23 @@ async def login_page(request: Request):
 async def dashboard_page(request: Request):
     """Serve the dashboard page"""
     return templates.TemplateResponse("dashboard.html", {"request": request})
+
+@router.get("/appointments", response_class=HTMLResponse)
+async def appointments_page(request: Request):
+    """Serve the appointments page"""
+    return templates.TemplateResponse("appointments.html", {"request": request})
+
+@router.get("/debug-token", response_class=HTMLResponse)
+async def debug_token_page(request: Request):
+    """Serve the token debug page"""
+    return templates.TemplateResponse("debug_token.html", {"request": request})
+
+@router.get("/login-test", response_class=HTMLResponse)
+async def login_test_page(request: Request):
+    """Serve the login test page"""
+    return templates.TemplateResponse("login_test.html", {"request": request})
+
+@router.get("/test-availability")
+async def test_availability_page(request: Request):
+    """Serve the test availability page"""
+    return templates.TemplateResponse("test_availability.html", {"request": request})

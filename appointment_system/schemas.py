@@ -1,8 +1,8 @@
 from pydantic import BaseModel, EmailStr, field_validator, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, date, time
 import re
-from models import UserType
+from models import UserType, AppointmentStatus
 
 class DivisionBase(BaseModel):
     name: str
@@ -176,3 +176,72 @@ class UserUpdate(BaseModel):
             if not v[3:].isdigit():
                 raise ValueError('Mobile number must contain only digits after +88')
         return v
+
+# Appointment Schemas
+class AppointmentBase(BaseModel):
+    doctor_id: int
+    appointment_date: date
+    appointment_time: time
+    notes: Optional[str] = Field(None, max_length=1000, description="Optional symptoms or notes")
+
+    @field_validator('appointment_date')
+    @classmethod
+    def validate_appointment_date(cls, v):
+        from datetime import date
+        if v < date.today():
+            raise ValueError('Appointment date cannot be in the past')
+        return v
+
+class AppointmentCreate(AppointmentBase):
+    pass
+
+class AppointmentUpdate(BaseModel):
+    appointment_date: Optional[date] = None
+    appointment_time: Optional[time] = None
+    notes: Optional[str] = Field(None, max_length=1000)
+    status: Optional[AppointmentStatus] = None
+
+    @field_validator('appointment_date')
+    @classmethod
+    def validate_appointment_date(cls, v):
+        if v is not None:
+            from datetime import date
+            if v < date.today():
+                raise ValueError('Appointment date cannot be in the past')
+        return v
+
+class Appointment(AppointmentBase):
+    id: int
+    patient_id: int
+    status: AppointmentStatus
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    # Include related data
+    patient: Optional['User'] = None
+    doctor: Optional['DoctorProfile'] = None
+
+    class Config:
+        from_attributes = True
+
+class AppointmentResponse(BaseModel):
+    id: int
+    patient_id: int
+    doctor_id: int
+    appointment_date: date
+    appointment_time: time
+    notes: Optional[str] = None
+    status: AppointmentStatus
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    # Patient and doctor information
+    patient_name: Optional[str] = None
+    patient_email: Optional[str] = None
+    patient_mobile: Optional[str] = None
+    doctor_name: Optional[str] = None
+    doctor_license: Optional[str] = None
+    consultation_fee: Optional[float] = None
+
+    class Config:
+        from_attributes = True

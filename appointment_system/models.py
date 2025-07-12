@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Column, Integer, String, Enum, Float, Boolean, ForeignKey, DateTime, LargeBinary
+from sqlalchemy import Column, Integer, String, Enum, Float, Boolean, ForeignKey, DateTime, LargeBinary, Text, Date, Time
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -8,6 +8,12 @@ class UserType(str, enum.Enum):
     PATIENT = "PATIENT"
     DOCTOR = "DOCTOR"
     ADMIN = "ADMIN"
+
+class AppointmentStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    CONFIRMED = "CONFIRMED"
+    CANCELLED = "CANCELLED"
+    COMPLETED = "COMPLETED"
 
 class Division(Base):
     __tablename__ = 'divisions'
@@ -83,6 +89,7 @@ class DoctorProfile(Base):
     # Relationships
     user = relationship("User", back_populates="doctor_profile")
     available_timeslots = relationship("DoctorTimeslot", back_populates="doctor")
+    appointments = relationship("Appointment", back_populates="doctor")
 
 class DoctorTimeslot(Base):
     __tablename__ = 'doctor_timeslots'
@@ -95,6 +102,25 @@ class DoctorTimeslot(Base):
 
     # Relationship
     doctor = relationship("DoctorProfile", back_populates="available_timeslots")
+
+class Appointment(Base):
+    __tablename__ = 'appointments'
+
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    doctor_id = Column(Integer, ForeignKey('doctor_profiles.id'), nullable=False)
+    appointment_date = Column(Date, nullable=False)
+    appointment_time = Column(Time, nullable=False)
+    notes = Column(Text, nullable=True)  # Optional symptoms/notes
+    status = Column(Enum(AppointmentStatus), default=AppointmentStatus.PENDING)
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationships
+    patient = relationship("User", foreign_keys=[patient_id])
+    doctor = relationship("DoctorProfile", foreign_keys=[doctor_id])
 
 class TokenBlacklist(Base):
     __tablename__ = 'token_blacklist'

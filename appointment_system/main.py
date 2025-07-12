@@ -1,6 +1,6 @@
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from routers import auth, users, locations, general, doctors
+from routers import auth, users, locations, general, doctors, appointments
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import models
@@ -32,6 +32,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(doctors.router, prefix="/api")
+app.include_router(appointments.router, prefix="/api")
 app.include_router(locations.router, prefix="/api")
 
 # Include general router without prefix for serving HTML pages

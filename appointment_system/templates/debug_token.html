@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Debug</title>
+</head>
+<body>
+    <h1>Token Debug Page</h1>
+    <div id="debug-info"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const debugInfo = document.getElementById('debug-info');
+
+            // Check all possible token keys
+            const tokenKeys = ['token', 'access_token', 'authToken'];
+            let debugOutput = '<h2>Token Debug Information:</h2>';
+
+            tokenKeys.forEach(key => {
+                const value = localStorage.getItem(key);
+                debugOutput += `<p><strong>${key}:</strong> ${value ? 'Found (' + value.substring(0, 20) + '...)' : 'Not found'}</p>`;
+            });
+
+            // Check user data
+            const userData = localStorage.getItem('user_data');
+            debugOutput += `<p><strong>user_data:</strong> ${userData ? 'Found' : 'Not found'}</p>`;
+
+            if (userData) {
+                try {
+                    const parsed = JSON.parse(userData);
+                    debugOutput += `<p><strong>User Name:</strong> ${parsed.full_name || 'N/A'}</p>`;
+                    debugOutput += `<p><strong>User Type:</strong> ${parsed.user_type || 'N/A'}</p>`;
+                } catch (e) {
+                    debugOutput += `<p><strong>User Data Parse Error:</strong> ${e.message}</p>`;
+                }
+            }
+
+            debugInfo.innerHTML = debugOutput;
+
+            // Add buttons to test navigation
+            debugOutput += `
+                <h3>Navigation Tests:</h3>
+                <button onclick="window.location.href='/dashboard'">Go to Dashboard</button>
+                <button onclick="window.location.href='/appointments'">Go to Appointments</button>
+                <button onclick="window.location.href='/login'">Go to Login</button>
+            `;
+
+            debugInfo.innerHTML = debugOutput;
+        });
+    </script>
+</body>
+</html>
