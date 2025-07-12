@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Appointment System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="signup-card">
+            <div class="header">
+                <h1>Create Account</h1>
+                <p>Join our appointment system today</p>
+            </div>
+
+            <form id="signupForm" class="signup-form" enctype="multipart/form-data">
+                <!-- Personal Information -->
+                <div class="form-section">
+                    <h3>Personal Information</h3>
+
+                    <div class="form-group">
+                        <label for="fullName">Full Name *</label>
+                        <input type="text" id="fullName" name="full_name" required>
+                        <span class="error-message" id="fullNameError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" name="email" required>
+                        <span class="error-message" id="emailError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mobileNumber">Mobile Number *</label>
+                        <input type="tel" id="mobileNumber" name="mobile_number" placeholder="+8801xxxxxxxxx" required>
+                        <span class="error-message" id="mobileNumberError"></span>
+                        <span class="help-text">Must start with +88 and be exactly 14 digits</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password *</label>
+                        <div class="password-input">
+                            <input type="password" id="password" name="password" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+                        </div>
+                        <span class="error-message" id="passwordError"></span>
+                        <span class="help-text">Min 8 characters, 1 uppercase, 1 digit, 1 special character</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password *</label>
+                        <input type="password" id="confirmPassword" name="confirm_password" required>
+                        <span class="error-message" id="confirmPasswordError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userType">User Type *</label>
+                        <select id="userType" name="user_type" required>
+                            <option value="">Select User Type</option>
+                            <option value="PATIENT">Patient</option>
+                            <option value="DOCTOR">Doctor</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                        <span class="error-message" id="userTypeError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profileImage">Profile Image (Optional)</label>
+                        <div class="file-upload">
+                            <input type="file" id="profileImage" name="profile_image" accept=".jpg,.jpeg,.png">
+                            <label for="profileImage" class="file-upload-label">
+                                <span class="file-upload-text">Choose Image</span>
+                                <span class="file-upload-icon">📁</span>
+                            </label>
+                        </div>
+                        <span class="error-message" id="profileImageError"></span>
+                        <span class="help-text">JPEG/PNG only, max 5MB</span>
+                    </div>
+                </div>
+
+                <!-- Address Information -->
+                <div class="form-section">
+                    <h3>Address Information</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="division">Division *</label>
+                            <select id="division" name="division_id" required>
+                                <option value="">Loading divisions...</option>
+                            </select>
+                            <span class="error-message" id="divisionError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="district">District *</label>
+                            <select id="district" name="district_id" required disabled>
+                                <option value="">Select Division First</option>
+                            </select>
+                            <span class="error-message" id="districtError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="thana">Thana *</label>
+                            <select id="thana" name="thana_id" required disabled>
+                                <option value="">Select District First</option>
+                            </select>
+                            <span class="error-message" id="thanaError"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doctor Specific Fields -->
+                <div class="form-section" id="doctorSection" style="display: none;">
+                    <h3>Doctor Information</h3>
+
+                    <div class="form-group">
+                        <label for="licenseNumber">Medical License Number *</label>
+                        <input type="text" id="licenseNumber" name="license_number">
+                        <span class="error-message" id="licenseNumberError"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="experienceYears">Years of Experience *</label>
+                            <input type="number" id="experienceYears" name="experience_years" min="0">
+                            <span class="error-message" id="experienceYearsError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="consultationFee">Consultation Fee (BDT) *</label>
+                            <input type="number" id="consultationFee" name="consultation_fee" min="0" step="0.01">
+                            <span class="error-message" id="consultationFeeError"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Available Timeslots *</label>
+                        <div class="timeslots-container" id="timeslotsContainer">
+                            <!-- Dynamic timeslots will be added here -->
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="addTimeslot()">Add Timeslot</button>
+                        <span class="error-message" id="timeslotsError"></span>
+                    </div>
+                </div>
+
+                <!-- Submit Section -->
+                <div class="form-section">
+                    <div class="terms-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="termsAccepted" required>
+                            <span class="checkmark"></span>
+                            I agree to the <a href="#" target="_blank">Terms and Conditions</a>
+                        </label>
+                        <span class="error-message" id="termsError"></span>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <span class="btn-text">Create Account</span>
+                        <span class="btn-loader" style="display: none;">⏳</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="login-link">
+                <p>Already have an account? <a href="/login">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="message-container" style="display: none;">
+        <div id="messageContent" class="message-content">
+            <span id="messageText"></span>
+            <button onclick="closeMessage()" class="close-btn">×</button>
+        </div>
+    </div>
+
+    <script src="/static/js/signup.js"></script>
+</body>
+</html>

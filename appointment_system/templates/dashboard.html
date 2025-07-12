@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Appointment System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard-card">
+            <div class="header">
+                <h1>Welcome to Your Dashboard</h1>
+                <p>Manage your appointments and profile</p>
+            </div>
+
+            <div class="user-info" id="userInfo">
+                <!-- User information will be loaded here -->
+            </div>
+
+            <div class="dashboard-actions">
+                <div class="action-grid">
+                    <div class="action-card">
+                        <h3>My Appointments</h3>
+                        <p>View and manage your appointments</p>
+                        <button class="btn btn-primary">View Appointments</button>
+                    </div>
+
+                    <div class="action-card">
+                        <h3>Profile Settings</h3>
+                        <p>Update your personal information</p>
+                        <button class="btn btn-secondary">Edit Profile</button>
+                    </div>
+
+                    <div class="action-card" id="doctorActions" style="display: none;">
+                        <h3>Doctor Tools</h3>
+                        <p>Manage your schedule and patients</p>
+                        <button class="btn btn-primary">Manage Schedule</button>
+                    </div>
+
+                    <div class="action-card">
+                        <h3>Find Doctors</h3>
+                        <p>Search for available doctors</p>
+                        <button class="btn btn-secondary">Search Doctors</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logout-section">
+                <button class="btn btn-outline" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
