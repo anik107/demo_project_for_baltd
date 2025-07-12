@@ -43,8 +43,8 @@ appointment_system/
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd demo_project
+git clone git@github.com:anik107/demo_project_for_baltd.git
+cd demo_project_for_baltd
 ```
 
 2. Create a virtual environment:
