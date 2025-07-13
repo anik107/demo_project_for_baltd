@@ -134,7 +134,7 @@ function showMessage(message, type = 'info') {
     if (type === 'success') {
         setTimeout(() => {
             messageContainer.style.display = 'none';
-        }, 5000);
+        }, 3000);
     }
 }
 
