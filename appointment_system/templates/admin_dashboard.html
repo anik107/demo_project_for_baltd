@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Appointment System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .stats-card.appointments {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .stats-card.doctors {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .stats-card.patients {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        .stats-card.pending {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        .admin-sidebar {
+            background-color: #2c3e50;
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #34495e;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .sidebar-item:hover {
+            background-color: #34495e;
+        }
+        .sidebar-item.active {
+            background-color: #3498db;
+        }
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .quick-actions {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 admin-sidebar p-0">
+                <div class="p-3">
+                    <h4><i class="fas fa-user-shield"></i> Admin Panel</h4>
+                    <hr>
+                </div>
+                <div class="sidebar-item active" onclick="window.location.href='/admin'">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/admin/appointments'">
+                    <i class="fas fa-calendar-check"></i> Appointments
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/admin/doctors'">
+                    <i class="fas fa-user-md"></i> Doctors
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/admin/logout'">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Admin Dashboard</h2>
+                    <div class="text-muted">
+                        Welcome, {{ user.full_name }}
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row" id="stats-container">
+                    <div class="col-md-3">
+                        <div class="stats-card appointments">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 id="total-appointments">...</h3>
+                                    <p class="mb-0">Total Appointments</p>
+                                </div>
+                                <i class="fas fa-calendar-check fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card doctors">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 id="total-doctors">...</h3>
+                                    <p class="mb-0">Total Doctors</p>
+                                </div>
+                                <i class="fas fa-user-md fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card patients">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 id="total-patients">...</h3>
+                                    <p class="mb-0">Total Patients</p>
+                                </div>
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card pending">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 id="pending-appointments">...</h3>
+                                    <p class="mb-0">Pending Appointments</p>
+                                </div>
+                                <i class="fas fa-clock fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h4>Quick Actions</h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a href="/admin/appointments" class="btn btn-primary btn-lg w-100 mb-3">
+                                <i class="fas fa-calendar-check"></i> Manage Appointments
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/admin/doctors" class="btn btn-success btn-lg w-100 mb-3">
+                                <i class="fas fa-user-md"></i> Manage Doctors
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/admin/appointments/create" class="btn btn-warning btn-lg w-100 mb-3">
+                                <i class="fas fa-plus"></i> Create Appointment
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a href="/admin/doctors/create" class="btn btn-info btn-lg w-100">
+                                <i class="fas fa-user-plus"></i> Add New Doctor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="mt-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>System Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>This is the administrative dashboard for the Appointment System. From here you can:</p>
+                            <ul>
+                                <li>View and manage all appointments in the system</li>
+                                <li>Create, update, and delete appointments</li>
+                                <li>Manage doctor profiles and information</li>
+                                <li>Monitor system statistics and activity</li>
+                            </ul>
+                            <p class="text-muted">Use the navigation menu on the left to access different sections.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('/admin/api/stats');
+                const stats = await response.json();
+
+                document.getElementById('total-appointments').textContent = stats.total_appointments;
+                document.getElementById('total-doctors').textContent = stats.total_doctors;
+                document.getElementById('total-patients').textContent = stats.total_patients;
+                document.getElementById('pending-appointments').textContent = stats.pending_appointments;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load stats on page load
+        document.addEventListener('DOMContentLoaded', loadStats);
+    </script>
+</body>
+</html>

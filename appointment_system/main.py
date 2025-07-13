@@ -1,6 +1,6 @@
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from routers import auth, users, locations, general, doctors, appointments
+from routers import auth, users, locations, general, doctors, appointments, admin
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import models
@@ -35,15 +35,11 @@ app.include_router(doctors.router, prefix="/api")
 app.include_router(appointments.router, prefix="/api")
 app.include_router(locations.router, prefix="/api")
 
+# Include admin router without prefix for admin panel
+app.include_router(admin.router)
+
 # Include general router without prefix for serving HTML pages
 app.include_router(general.router)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @app.on_event("startup")
 async def startup_event():

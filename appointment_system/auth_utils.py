@@ -283,3 +283,16 @@ def get_current_user(
         )
 
     return user
+
+def require_admin(current_user = Depends(get_current_user)):
+    """
+    FastAPI dependency to require admin permissions
+    """
+    from models import UserType
+
+    if current_user.user_type != UserType.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    return current_user

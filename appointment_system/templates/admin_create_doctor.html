@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Doctor - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        .admin-sidebar {
+            background-color: #2c3e50;
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #34495e;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .sidebar-item:hover {
+            background-color: #34495e;
+        }
+        .sidebar-item.active {
+            background-color: #3498db;
+        }
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .form-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 admin-sidebar p-0">
+                <div class="p-3">
+                    <h4><i class="fas fa-user-shield"></i> Admin Panel</h4>
+                    <hr>
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/admin'">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/admin/appointments'">
+                    <i class="fas fa-calendar-check"></i> Appointments
+                </div>
+                <div class="sidebar-item active">
+                    <i class="fas fa-user-md"></i> Doctors
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/api/logout'">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Create New Doctor</h2>
+                    <a href="/admin/doctors" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Doctors
+                    </a>
+                </div>
+
+                <div class="form-card">
+                    <form method="POST" action="/admin/doctors/create" id="doctorForm">
+                        <h5 class="mb-4"><i class="fas fa-user"></i> Personal Information</h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="full_name" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mobile_number" class="form-label">Mobile Number *</label>
+                                    <input type="text" class="form-control" id="mobile_number" name="mobile_number" required
+                                           placeholder="+8801XXXXXXXXX" pattern="^\+8801[0-9]{9}$">
+                                    <div class="form-text">Format: +8801XXXXXXXXX (must start with +8801)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password *</label>
+                                    <input type="password" class="form-control" id="password" name="password" required
+                                           minlength="8">
+                                    <div class="form-text">Minimum 8 characters with uppercase, digit, and special character</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-4"><i class="fas fa-map-marker-alt"></i> Address Information</h5>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="division_id" class="form-label">Division *</label>
+                                    <select class="form-select" id="division_id" name="division_id" required>
+                                        <option value="">Select Division</option>
+                                        {% for division in divisions %}
+                                        <option value="{{ division.id }}">{{ division.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="district_id" class="form-label">District *</label>
+                                    <select class="form-select" id="district_id" name="district_id" required>
+                                        <option value="">Select District</option>
+                                        {% for district in districts %}
+                                        <option value="{{ district.id }}" data-division="{{ district.division_id }}">{{ district.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="thana_id" class="form-label">Thana *</label>
+                                    <select class="form-select" id="thana_id" name="thana_id" required>
+                                        <option value="">Select Thana</option>
+                                        {% for thana in thanas %}
+                                        <option value="{{ thana.id }}" data-district="{{ thana.district_id }}">{{ thana.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-4"><i class="fas fa-stethoscope"></i> Professional Information</h5>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="license_number" class="form-label">Medical License Number *</label>
+                                    <input type="text" class="form-control" id="license_number" name="license_number" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="experience_years" class="form-label">Years of Experience *</label>
+                                    <input type="number" class="form-control" id="experience_years" name="experience_years" required min="0" max="50">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="consultation_fee" class="form-label">Consultation Fee ($) *</label>
+                                    <input type="number" class="form-control" id="consultation_fee" name="consultation_fee" required min="0" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="/admin/doctors" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create Doctor
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Information Card -->
+                <div class="mt-4">
+                    <div class="card border-info">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="fas fa-info-circle"></i> Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0">
+                                <li>All fields marked with (*) are required</li>
+                                <li>Mobile number must be in Bangladesh format (+8801XXXXXXXXX)</li>
+                                <li>Password must be at least 8 characters with uppercase, digit, and special character</li>
+                                <li>Medical license number must be unique</li>
+                                <li>The doctor account will be created with DOCTOR user type</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Cascading dropdowns for location
+        document.getElementById('division_id').addEventListener('change', function() {
+            const divisionId = this.value;
+            const districtSelect = document.getElementById('district_id');
+            const thanaSelect = document.getElementById('thana_id');
+
+            // Reset district and thana
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            thanaSelect.innerHTML = '<option value="">Select Thana</option>';
+
+            if (divisionId) {
+                const districts = districtSelect.querySelectorAll('option[data-division]');
+                districts.forEach(option => {
+                    if (option.dataset.division === divisionId) {
+                        districtSelect.appendChild(option.cloneNode(true));
+                    }
+                });
+            }
+        });
+
+        document.getElementById('district_id').addEventListener('change', function() {
+            const districtId = this.value;
+            const thanaSelect = document.getElementById('thana_id');
+
+            // Reset thana
+            thanaSelect.innerHTML = '<option value="">Select Thana</option>';
+
+            if (districtId) {
+                const thanas = document.querySelectorAll('option[data-district]');
+                thanas.forEach(option => {
+                    if (option.dataset.district === districtId) {
+                        thanaSelect.appendChild(option.cloneNode(true));
+                    }
+                });
+            }
+        });
+
+        // Form validation
+        document.getElementById('doctorForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const mobile = document.getElementById('mobile_number').value;
+
+            // Password validation
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                e.preventDefault();
+                alert('Password must contain at least 8 characters including uppercase, lowercase, digit, and special character.');
+                return false;
+            }
+
+            // Mobile number validation
+            const mobileRegex = /^\+8801[0-9]{9}$/;
+            if (!mobileRegex.test(mobile)) {
+                e.preventDefault();
+                alert('Mobile number must be in format +8801XXXXXXXXX');
+                return false;
+            }
+
+            return true;
+        });
+    </script>
+</body>
+</html>
