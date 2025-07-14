@@ -14,24 +14,89 @@
             align-items: center;
             margin: 0;
             color: white;
+            padding: 20px;
+        }
+        .main-container {
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
         }
         .welcome-container {
-            text-align: center;
             padding: 40px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
         }
         h1 {
             font-size: 3rem;
             margin-bottom: 20px;
             font-weight: 600;
         }
-        p {
+        .subtitle {
             font-size: 1.2rem;
             margin-bottom: 30px;
             opacity: 0.9;
+            line-height: 1.5;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .feature-card {
+            background: rgba(206, 193, 193, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .feature-desc {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+        .user-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .section-desc {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         .btn {
             display: inline-block;
@@ -43,7 +108,7 @@
             font-weight: 600;
             font-size: 1.1rem;
             transition: all 0.3s ease;
-            margin: 0 10px;
+            min-width: 140px;
         }
         .btn:hover {
             transform: translateY(-2px);
@@ -58,15 +123,76 @@
             background: white;
             color: #667eea;
         }
+        .btn-admin {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+        }
+        .btn-admin:hover {
+            background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+            color: white;
+        }
+        .admin-section {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(238, 90, 36, 0.2));
+            border: 2px solid rgba(255, 107, 107, 0.3);
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .features { grid-template-columns: 1fr; }
+            .btn-group { flex-direction: column; align-items: center; }
+            .btn { min-width: 200px; }
+        }
     </style>
 </head>
 <body>
-    <div class="welcome-container">
-        <h1>🏥 Appointment System</h1>
-        <p>Welcome to our modern healthcare appointment platform</p>
-        <div>
-            <a href="/signup" class="btn">Sign Up</a>
-            <a href="/login" class="btn btn-outline">Login</a>
+    <div class="main-container">
+        <!-- Welcome Section -->
+        <div class="welcome-container">
+            <h1>🏥 Appointment System</h1>
+            <p class="subtitle">Welcome to our modern healthcare appointment platform.<br>
+            Schedule appointments with ease, manage your healthcare journey, and connect with healthcare professionals.</p>
+
+            <!-- Features Section -->
+            <div class="features">
+                <div class="feature-card">
+                    <span class="feature-icon">📅</span>
+                    <div class="feature-title">Easy Scheduling</div>
+                    <div class="feature-desc">Book appointments with your preferred doctors at convenient times</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">👩‍⚕️</span>
+                    <div class="feature-title">Expert Doctors</div>
+                    <div class="feature-desc">Connect with qualified healthcare professionals across specialties</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📱</span>
+                    <div class="feature-title">Digital Experience</div>
+                    <div class="feature-desc">Manage your appointments and health records online</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Section -->
+        <div class="user-section">
+            <h2 class="section-title">
+                <span>👤</span> For Patients
+            </h2>
+            <p class="section-desc">Join thousands of patients who trust our platform for their healthcare needs</p>
+            <div class="btn-group">
+                <a href="/signup" class="btn">📝 Sign Up</a>
+                <a href="/login" class="btn btn-outline">🔑 Login</a>
+            </div>
+        </div>
+
+        <!-- Admin Section -->
+        <div class="user-section admin-section">
+            <h2 class="section-title">
+                <span>⚙️</span> For Healthcare Administrators
+            </h2>
+            <p class="section-desc">Manage appointments, doctors, and platform settings with powerful admin tools</p>
+            <div class="btn-group">
+                <a href="/admin/login" class="btn btn-admin">🛡️ Admin Login</a>
+            </div>
         </div>
     </div>
 </body>
