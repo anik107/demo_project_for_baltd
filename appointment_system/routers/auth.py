@@ -1,11 +1,14 @@
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from schemas import UserCreate, User as UserSchema
 from user_service import UserService
 from auth_utils import verify_password, create_access_token, blacklist_token, get_current_user_from_token
 from pydantic import BaseModel
+from typing import Optional
+import base64
+from models import UserType
 
 class LoginRequest(BaseModel):
     email: str
@@ -15,6 +18,7 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str
+    message: str
     user: UserSchema
 
 class LogoutResponse(BaseModel):
@@ -88,13 +92,11 @@ async def login_user(login_data: LoginRequest, db: Session = Depends(get_db)):
         # Create access token
         access_token = create_access_token(data={"sub": user.email, "user_id": user.id})
 
-        # Convert user to schema
-        user_schema = UserSchema.model_validate(user)
-
         return LoginResponse(
             access_token=access_token,
             token_type="bearer",
-            user=user_schema
+            message="Login successful",
+            user=UserSchema.model_validate(user)
         )
 
     except HTTPException:
@@ -151,17 +153,6 @@ async def refresh_token():
 
 @router.post("/signup", response_model=UserSchema)
 async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    """
-    Register a new user with the following requirements:
-    - Full Name (required)
-    - Email (unique, required)
-    - Mobile Number (must start with +88, exactly 14 digits)
-    - Password (minimum 8 characters, 1 uppercase, 1 digit, 1 special character)
-    - User Type (Patient, Doctor, Admin)
-    - Address (Division, District, Thana - hierarchical validation)
-    - Profile Image (optional, max 5MB, JPEG/PNG only)
-    - For Doctors: License Number, Experience Years, Consultation Fee, Available timeslots
-    """
     try:
         user = UserService.create_user(db, user_data)
         return user
@@ -174,4 +165,128 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Registration failed"
+        )
+
+@router.post("/signup-with-file", response_model=UserSchema)
+async def register_user_with_file(
+    full_name: str = Form(...),
+    email: str = Form(...),
+    mobile_number: str = Form(...),
+    password: str = Form(...),
+    user_type: UserType = Form(...),
+    division_id: str = Form(...),  # Accept as string, convert later
+    district_id: str = Form(...),   # Accept as string, convert later
+    thana_id: str = Form(...),      # Accept as string, convert later
+    profile_image: Optional[UploadFile] = File(None),
+    # Doctor profile fields (optional)
+    license_number: Optional[str] = Form(None),
+    experience_years: Optional[str] = Form(None),  # Accept as string, convert later
+    consultation_fee: Optional[str] = Form(None),  # Accept as string, convert later
+    db: Session = Depends(get_db)
+):
+    try:
+        # Convert string values to appropriate types
+        try:
+            division_id_int = int(division_id)
+            district_id_int = int(district_id)
+            thana_id_int = int(thana_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid location IDs. Please select valid division, district, and thana."
+            )
+
+        # Prepare profile image data if uploaded
+        profile_image_base64 = None
+        profile_image_filename = None
+
+        if profile_image:
+            # Validate file type
+            if profile_image.content_type not in ["image/jpeg", "image/png"]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Profile image must be JPEG or PNG format"
+                )
+
+            # Read and encode image
+            image_content = await profile_image.read()
+            profile_image_base64 = base64.b64encode(image_content).decode()
+            profile_image_filename = profile_image.filename
+
+        # Prepare doctor profile if user is a doctor
+        doctor_profile = None
+        if user_type == UserType.DOCTOR:
+            if not all([license_number, experience_years, consultation_fee]):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Doctor profile fields (license_number, experience_years, consultation_fee) are required for doctor registration"
+                )
+
+            # Convert doctor-specific string values to appropriate types
+            try:
+                experience_years_int = int(experience_years)
+                consultation_fee_float = float(consultation_fee)
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid doctor profile data. Experience years must be a number, consultation fee must be a valid amount."
+                )
+
+            from schemas import DoctorProfileCreate
+            doctor_profile = DoctorProfileCreate(
+                license_number=license_number,
+                experience_years=experience_years_int,
+                consultation_fee=consultation_fee_float
+            )
+
+        # Create UserCreate object
+        user_data = UserCreate(
+            full_name=full_name,
+            email=email,
+            mobile_number=mobile_number,
+            password=password,
+            user_type=user_type,
+            division_id=division_id_int,
+            district_id=district_id_int,
+            thana_id=thana_id_int,
+            profile_image_base64=profile_image_base64,
+            profile_image_filename=profile_image_filename,
+            doctor_profile=doctor_profile
+        )
+
+        user = UserService.create_user(db, user_data)
+        return user
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Registration failed"
+        )
+
+@router.get("/dashboard", response_model=UserSchema)
+async def get_dashboard_data(
+    current_user: UserSchema = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user dashboard data"""
+    try:
+        # Fetch user data from the database
+        user = UserService.get_user_by_id(db, current_user.id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        return UserSchema.model_validate(user)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching dashboard data: {str(e)}"
         )

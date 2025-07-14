@@ -25,8 +25,13 @@ app.add_middleware(
 # Create tables
 models.Base.metadata.create_all(bind=engine)
 
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+from pathlib import Path
+
+# Get the directory of this file for proper path resolution
+BASE_DIR = Path(__file__).parent
+
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 # Include routers with /api prefix for API endpoints
 app.include_router(auth.router, prefix="/api")

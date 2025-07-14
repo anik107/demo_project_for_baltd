@@ -523,21 +523,58 @@ async function handleFormSubmit(event) {
     btnLoader.style.display = 'inline-block';
 
     try {
-        // Prepare data for submission
-        const userData = await prepareUserData(formData);
+        // Check if we have a profile image to decide which endpoint to use
+        const profileImageFile = formData.get('profile_image');
+        const hasProfileImage = profileImageFile && profileImageFile.size > 0;
 
-        // Submit to API
-        const response = await fetch(`${API_BASE_URL}/auth/signup`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(userData)
-        });
+        let response;
+        if (hasProfileImage) {
+            // Use multipart form data endpoint for file uploads
+            response = await fetch(`${API_BASE_URL}/auth/signup-with-file`, {
+                method: 'POST',
+                body: formData  // Send FormData directly for multipart
+            });
+        } else {
+            // Use JSON endpoint for text-only data
+            const userData = await prepareUserData(formData);
+            response = await fetch(`${API_BASE_URL}/auth/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            });
+        }
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || 'Registration failed');
+            let errorMessage = 'Registration failed';
+
+            if (errorData.detail) {
+                if (typeof errorData.detail === 'string') {
+                    errorMessage = errorData.detail;
+                } else if (Array.isArray(errorData.detail)) {
+                    // Handle Pydantic validation errors array
+                    const errorMessages = errorData.detail.map(err => {
+                        if (err.msg) {
+                            return err.msg;
+                        } else if (err.message) {
+                            return err.message;
+                        } else if (typeof err === 'string') {
+                            return err;
+                        } else {
+                            return 'Validation error';
+                        }
+                    });
+                    errorMessage = errorMessages.join('\n');
+                } else if (typeof errorData.detail === 'object' && errorData.detail.message) {
+                    errorMessage = errorData.detail.message;
+                } else {
+                    errorMessage = 'Registration failed - please check your input';
+                }
+            }
+
+            throw new Error(errorMessage);
         }
 
         const result = await response.json();
@@ -550,7 +587,18 @@ async function handleFormSubmit(event) {
 
     } catch (error) {
         console.error('Registration error:', error);
-        showMessage(error.message || 'Registration failed. Please try again.', 'error');
+
+        let errorMessage = 'Registration failed. Please try again.';
+
+        if (error.message) {
+            errorMessage = error.message;
+        } else if (typeof error === 'string') {
+            errorMessage = error;
+        } else if (error.detail) {
+            errorMessage = typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail);
+        }
+
+        showMessage(errorMessage, 'error');
     } finally {
         // Reset button state
         submitBtn.disabled = false;
@@ -660,14 +708,18 @@ function showMessage(message, type = 'success') {
     const messageContent = document.getElementById('messageContent');
     const messageText = document.getElementById('messageText');
 
-    messageText.textContent = message;
+    // Handle multi-line messages by converting newlines to HTML breaks
+    const formattedMessage = message.replace(/\n/g, '<br>');
+    messageText.innerHTML = formattedMessage;
+
     messageContent.className = `message-content ${type}`;
     messageContainer.style.display = 'block';
 
-    // Auto-hide after 5 seconds
+    // Auto-hide after 8 seconds for error messages (longer for reading), 5 seconds for success
+    const hideTimeout = type === 'error' ? 8000 : 5000;
     setTimeout(() => {
         closeMessage();
-    }, 5000);
+    }, hideTimeout);
 }
 
 function closeMessage() {

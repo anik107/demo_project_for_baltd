@@ -151,6 +151,15 @@ class User(UserBase):
     division: Optional[Division] = None
     district: Optional[District] = None
     thana: Optional[Thana] = None
+    profile_image_filename: Optional[str] = None
+    profile_image_content_type: Optional[str] = None
+
+    @property
+    def profile_image_url(self) -> Optional[str]:
+        """Get the URL for the profile image"""
+        if self.profile_image_filename:
+            return f"/static/profiles/{self.profile_image_filename}"
+        return None
 
     class Config:
         from_attributes = True

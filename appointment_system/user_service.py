@@ -43,10 +43,10 @@ class UserService:
                     raise ValueError("Mobile number already registered")
 
             # Process profile image if provided
-            profile_image_data = None
+            profile_image_filename = None
             profile_image_content_type = None
             if user_data.profile_image_base64 and user_data.profile_image_filename:
-                profile_image_data, profile_image_content_type = process_profile_image(
+                profile_image_filename, profile_image_content_type = process_profile_image(
                     user_data.profile_image_base64, user_data.profile_image_filename
                 )
 
@@ -63,8 +63,7 @@ class UserService:
                 division_id=user_data.division_id,
                 district_id=user_data.district_id,
                 thana_id=user_data.thana_id,
-                profile_image=profile_image_data,
-                profile_image_filename=user_data.profile_image_filename,
+                profile_image_filename=profile_image_filename,
                 profile_image_content_type=profile_image_content_type
             )
 

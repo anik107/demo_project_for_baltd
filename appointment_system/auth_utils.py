@@ -56,11 +56,15 @@ def verify_password(password: str, hashed_password: str) -> bool:
     except ValueError:
         return False
 
-def process_profile_image(base64_image: str, filename: str) -> Tuple[bytes, str]:
+def process_profile_image(base64_image: str, filename: str) -> Tuple[str, str]:
     """
-    Process and validate profile image
-    Returns: (image_bytes, content_type)
+    Process and validate profile image, save to static directory
+    Returns: (saved_filename, content_type)
     """
+    import uuid
+    import os
+    from pathlib import Path
+
     # Decode base64 image
     image_data = base64.b64decode(base64_image)
 
@@ -86,12 +90,21 @@ def process_profile_image(base64_image: str, filename: str) -> Tuple[bytes, str]
         if image.size[0] > max_size[0] or image.size[1] > max_size[1]:
             image.thumbnail(max_size, Image.Resampling.LANCZOS)
 
-            # Convert back to bytes
-            img_buffer = io.BytesIO()
-            image.save(img_buffer, format=image.format)
-            image_data = img_buffer.getvalue()
+        # Generate unique filename to prevent conflicts
+        file_extension = ".jpg" if image.format == "JPEG" else ".png"
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
 
-        return image_data, content_type
+        # Get the directory of the current file and construct path to static/profiles
+        current_dir = Path(__file__).parent
+        profiles_dir = current_dir / "static" / "profiles"
+        profiles_dir.mkdir(parents=True, exist_ok=True)
+
+        file_path = profiles_dir / unique_filename
+
+        # Save image to file
+        image.save(file_path, format=image.format)
+
+        return unique_filename, content_type
 
     except Exception as e:
         raise ValueError(f"Invalid image format: {str(e)}")

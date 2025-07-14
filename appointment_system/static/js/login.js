@@ -215,7 +215,14 @@ async function handleLoginSubmit(event) {
         // Store authentication token if provided
         if (result.access_token) {
             localStorage.setItem('access_token', result.access_token);
-            localStorage.setItem('user_data', JSON.stringify(result.user));
+
+            // Store user data if provided
+            if (result.user) {
+                console.log('Storing user data:', result.user);
+                localStorage.setItem('user_data', JSON.stringify(result.user));
+            } else {
+                console.warn('No user data in login response');
+            }
         }
 
         showMessage('Login successful! Redirecting...', 'success');
@@ -243,8 +250,21 @@ function getAuthToken() {
 
 // Utility function to get stored user data
 function getUserData() {
-    const userData = localStorage.getItem('user_data');
-    return userData ? JSON.parse(userData) : null;
+    try {
+        const userData = localStorage.getItem('user_data');
+        if (!userData) {
+            console.warn('No user data found in localStorage');
+            return null;
+        }
+        const parsedData = JSON.parse(userData);
+        console.log('Retrieved user data:', parsedData);
+        return parsedData;
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+        // Clear corrupted data
+        localStorage.removeItem('user_data');
+        return null;
+    }
 }
 
 // Utility function to check if user is authenticated

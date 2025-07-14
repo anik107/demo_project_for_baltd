@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Column, Integer, String, Enum, Float, Boolean, ForeignKey, DateTime, LargeBinary, Text, Date, Time
+from sqlalchemy import Column, Integer, String, Enum, Float, Boolean, ForeignKey, DateTime, Text, Date, Time
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -61,7 +61,6 @@ class User(Base):
     thana_id = Column(Integer, ForeignKey('thanas.id'), nullable=False)
 
     # Profile image
-    profile_image = Column(LargeBinary, nullable=True)  # Max 5MB, JPEG/PNG only
     profile_image_filename = Column(String, nullable=True)
     profile_image_content_type = Column(String, nullable=True)
 
