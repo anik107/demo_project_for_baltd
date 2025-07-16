@@ -121,6 +121,17 @@ class Appointment(Base):
     patient = relationship("User", foreign_keys=[patient_id])
     doctor = relationship("DoctorProfile", foreign_keys=[doctor_id])
 
+class Notification(Base):
+    __tablename__ = 'notifications'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationship
+    user = relationship("User")
+
 class TokenBlacklist(Base):
     __tablename__ = 'token_blacklist'
 

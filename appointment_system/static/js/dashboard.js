@@ -14,6 +14,9 @@ function initializeDashboard() {
     // Always fetch fresh user data to ensure we have profile image info
     // This ensures we get the latest data including profile images
     fetchUserDataFromServer();
+
+    // Load notifications
+    loadNotifications();
 }
 
 function loadUserInfo() {
@@ -217,3 +220,173 @@ function debugUserData() {
 
 // Make debug function available globally for testing
 window.debugUserData = debugUserData;
+
+// Notification Functions
+async function loadNotifications() {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            console.log('No auth token available for notifications');
+            return;
+        }
+
+        console.log('Loading notifications...');
+        const response = await fetch(`${API_BASE_URL}/notifications?limit=5&read_only=true`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            console.error('Failed to fetch notifications:', response.status);
+            if (response.status === 401) {
+                console.warn('Authentication failed for notifications. Token may be expired.');
+                // Try to refresh user data which will redirect to login if token is invalid
+                fetchUserDataFromServer();
+            }
+            return;
+        }
+
+        const notifications = await response.json();
+        console.log('Loaded notifications:', notifications);
+
+        // Also get unread count
+        const countResponse = await fetch(`${API_BASE_URL}/notifications/unread-count`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        let unreadCount = 0;
+        if (countResponse.ok) {
+            const countData = await countResponse.json();
+            unreadCount = countData.unread_count || 0;
+        } else if (countResponse.status === 401) {
+            console.warn('Authentication failed for notification count. Token may be expired.');
+            // Don't try to refresh here to avoid infinite loops
+        }
+
+        displayNotifications(notifications, unreadCount);
+
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+    }
+}
+
+function displayNotifications(notifications, unreadCount) {
+    const notificationsSection = document.getElementById('notificationsSection');
+    const notificationsContainer = document.getElementById('notificationsContainer');
+    const notificationBadge = document.getElementById('notificationBadge');
+
+    // Filter notifications to only show read ones
+    const readNotifications = notifications.filter(notification => notification.is_read === true);
+
+    // Show notifications section if there are read notifications
+    if (readNotifications && readNotifications.length > 0) {
+        notificationsSection.style.display = 'block';
+
+        // Update badge (for unread count, but we're only showing read notifications)
+        if (unreadCount > 0) {
+            notificationBadge.textContent = unreadCount;
+            notificationBadge.style.display = 'inline-flex';
+        } else {
+            notificationBadge.style.display = 'none';
+        }
+
+        // Display only read notifications with user-friendly messages
+        notificationsContainer.innerHTML = readNotifications.map(notification => {
+            const date = new Date(notification.created_at).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // Create a user-friendly message with appointment link
+            let friendlyMessage = '';
+            let appointmentLink = '/appointments';
+            let linkText = '📅 View All Appointments';
+
+            if (notification.message) {
+                // If notification has a message, use it
+                if (notification.user_name && notification.user_email) {
+                    friendlyMessage = `✅ Notification from ${notification.user_name} (${notification.user_email}) - ${notification.message}`;
+                } else if (notification.user_name) {
+                    friendlyMessage = `✅ Notification from ${notification.user_name} - ${notification.message}`;
+                } else {
+                    friendlyMessage = `✅ ${notification.message}`;
+                }
+
+                // Check if this is an appointment-related notification
+                if (notification.message.toLowerCase().includes('appointment')) {
+                    linkText = '📅 View Appointment Details';
+                    // If we have an appointment ID in the notification, we could link to specific appointment
+                    if (notification.appointment_id) {
+                        appointmentLink = `/appointments/${notification.appointment_id}`;
+                        linkText = '📅 View This Appointment';
+                    }
+                }
+            } else {
+                // Default notification message for appointment reminders
+                if (notification.user_name) {
+                    friendlyMessage = `✅ Appointment reminder from ${notification.user_name}`;
+                } else {
+                    friendlyMessage = `✅ You have an appointment reminder`;
+                }
+                linkText = '📅 View Your Appointments';
+            }
+
+            return `
+                <div class="notification-item read-notification">
+                    <div class="notification-message">
+                        ${friendlyMessage}
+                        <div class="notification-actions">
+                            <a href="${appointmentLink}" class="appointment-link" onclick="return handleAppointmentLinkClick(event, '${notification.appointment_id}')">
+                                ${linkText}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="notification-date">${date}</div>
+                </div>
+            `;
+        }).join('');
+
+    } else {
+        notificationsContainer.innerHTML = '<div class="notification-empty">No read notifications to display</div>';
+        notificationBadge.style.display = 'none';
+        notificationsSection.style.display = 'block';
+    }
+}
+
+function viewAllNotifications() {
+    // For now, just reload notifications to show more
+    // In the future, this could navigate to a dedicated notifications page
+    loadNotifications();
+}
+
+// Auto-refresh notifications every 5 minutes
+setInterval(() => {
+    console.log('Auto-refreshing notifications...');
+    loadNotifications();
+}, 5 * 60 * 1000); // 5 minutes
+
+// Make notification functions available globally
+window.markNotificationAsRead = markNotificationAsRead;
+window.markAllAsRead = markAllAsRead;
+window.viewAllNotifications = viewAllNotifications;
+
+// Add a helper function to handle appointment link clicks
+function handleAppointmentLinkClick(event, appointmentId = null) {
+    // You can add analytics tracking here if needed
+    console.log('Appointment link clicked', appointmentId ? `for appointment ${appointmentId}` : 'for all appointments');
+
+    // Let the default link behavior happen (navigation)
+    return true;
+}
+
+// Make the helper function available globally
+window.handleAppointmentLinkClick = handleAppointmentLinkClick;

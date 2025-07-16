@@ -6,6 +6,7 @@ from database import SessionLocal
 from schemas import AppointmentCreate, AppointmentUpdate, AppointmentResponse
 from models import AppointmentStatus
 from appointment_service import AppointmentService
+from notification_service import NotificationService
 from auth_utils import get_current_user
 from models import User
 
@@ -35,10 +36,24 @@ async def create_appointment(
             status_code=403,
             detail="Only patients can create appointments"
         )
-
-    created_appointment = AppointmentService.create_appointment(
-        db, appointment, current_user.id
-    )
+    try:
+        created_appointment = AppointmentService.create_appointment(
+            db, appointment, current_user.id
+        )
+        if created_appointment:
+            created_notification = NotificationService.create_notification(
+                db, created_appointment
+            )
+        if not created_notification:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to create appointment notification"
+            )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error creating appointment: {str(e)}"
+        )
 
     # Return the appointment with full details
     return AppointmentService.get_appointment_by_id(db, created_appointment.id)

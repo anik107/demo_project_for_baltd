@@ -254,3 +254,38 @@ class AppointmentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# Notification Schemas
+class NotificationBase(BaseModel):
+    pass
+
+class NotificationCreate(NotificationBase):
+    user_id: int = Field(..., description="ID of the user to receive the notification")
+
+class NotificationUpdate(BaseModel):
+    is_read: Optional[bool] = None
+
+class Notification(NotificationBase):
+    id: int
+    user_id: int
+    is_read: bool = False
+    created_at: Optional[datetime] = None
+
+    # Include related user data
+    user: Optional['User'] = None
+
+    class Config:
+        from_attributes = True
+
+class NotificationResponse(BaseModel):
+    id: int
+    user_id: int
+    is_read: bool
+    created_at: Optional[datetime] = None
+
+    # User information
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
+
+    class Config:
+        from_attributes = True

@@ -290,3 +290,46 @@ async def get_dashboard_data(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching dashboard data: {str(e)}"
         )
+
+@router.get("/dashboard-with-notifications")
+async def get_dashboard_with_notifications(
+    current_user: UserSchema = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user dashboard data including recent notifications"""
+    try:
+        from notification_service import NotificationService
+
+        # Fetch user data from the database
+        user = UserService.get_user_by_id(db, current_user.id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        # Get recent notifications (last 5 unread ones)
+        notifications = NotificationService.get_user_notifications(
+            db=db,
+            user_id=current_user.id,
+            skip=0,
+            limit=5,
+            unread_only=True
+        )
+
+        # Get unread notification count
+        unread_count = NotificationService.get_unread_count(db=db, user_id=current_user.id)
+
+        return {
+            "user": UserSchema.model_validate(user),
+            "notifications": notifications,
+            "unread_count": unread_count
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching dashboard data: {str(e)}"
+        )

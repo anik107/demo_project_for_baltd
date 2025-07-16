@@ -1,6 +1,6 @@
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from routers import auth, users, locations, general, doctors, appointments, admin
+from routers import auth, users, locations, general, doctors, appointments, admin, notifications
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import models
@@ -39,12 +39,28 @@ app.include_router(users.router, prefix="/api")
 app.include_router(doctors.router, prefix="/api")
 app.include_router(appointments.router, prefix="/api")
 app.include_router(locations.router, prefix="/api")
+app.include_router(notifications.router, prefix="/api")
 
 # Include admin router without prefix for admin panel
 app.include_router(admin.router)
 
 # Include general router without prefix for serving HTML pages
 app.include_router(general.router)
+
+# Add a route to manually trigger reminder notifications (for testing/admin use)
+@app.post("/api/admin/send-reminders")
+async def trigger_reminder_notifications():
+    """Manually trigger sending of reminder notifications"""
+    from task_scheduler import TaskScheduler
+
+    db = SessionLocal()
+    try:
+        reminders_sent = TaskScheduler.send_daily_appointment_reminders(db)
+        return {"message": f"Successfully sent {reminders_sent} reminder notifications"}
+    except Exception as e:
+        return {"error": f"Failed to send reminders: {str(e)}"}
+    finally:
+        db.close()
 
 @app.on_event("startup")
 async def startup_event():
