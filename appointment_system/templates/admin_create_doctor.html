@@ -110,40 +110,30 @@
 
                         <hr class="my-4">
                         <h5 class="mb-4"><i class="fas fa-map-marker-alt"></i> Address Information</h5>
-
                         <div class="row">
                             <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="division_id" class="form-label">Division *</label>
-                                    <select class="form-select" id="division_id" name="division_id" required>
-                                        <option value="">Select Division</option>
-                                        {% for division in divisions %}
-                                        <option value="{{ division.id }}">{{ division.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+                            <div class="mb-3">
+                                <label for="division" class="form-label">Division *</label>
+                                <select class="form-select" id="division" name="division_id" required>
+                                <option value="">Select Division</option>
+                                </select>
+                            </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="district_id" class="form-label">District *</label>
-                                    <select class="form-select" id="district_id" name="district_id" required>
-                                        <option value="">Select District</option>
-                                        {% for district in districts %}
-                                        <option value="{{ district.id }}" data-division="{{ district.division_id }}">{{ district.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+                            <div class="mb-3">
+                                <label for="district" class="form-label">District *</label>
+                                <select class="form-select" id="district" name="district_id" required disabled>
+                                <option value="">Select District</option>
+                                </select>
+                            </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="thana_id" class="form-label">Thana *</label>
-                                    <select class="form-select" id="thana_id" name="thana_id" required>
-                                        <option value="">Select Thana</option>
-                                        {% for thana in thanas %}
-                                        <option value="{{ thana.id }}" data-district="{{ thana.district_id }}">{{ thana.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+                            <div class="mb-3">
+                                <label for="thana" class="form-label">Thana *</label>
+                                <select class="form-select" id="thana" name="thana_id" required disabled>
+                                <option value="">Select Thana</option>
+                                </select>
+                            </div>
                             </div>
                         </div>
 
@@ -202,67 +192,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Cascading dropdowns for location
-        document.getElementById('division_id').addEventListener('change', function() {
-            const divisionId = this.value;
-            const districtSelect = document.getElementById('district_id');
-            const thanaSelect = document.getElementById('thana_id');
-
-            // Reset district and thana
-            districtSelect.innerHTML = '<option value="">Select District</option>';
-            thanaSelect.innerHTML = '<option value="">Select Thana</option>';
-
-            if (divisionId) {
-                const districts = districtSelect.querySelectorAll('option[data-division]');
-                districts.forEach(option => {
-                    if (option.dataset.division === divisionId) {
-                        districtSelect.appendChild(option.cloneNode(true));
-                    }
-                });
-            }
-        });
-
-        document.getElementById('district_id').addEventListener('change', function() {
-            const districtId = this.value;
-            const thanaSelect = document.getElementById('thana_id');
-
-            // Reset thana
-            thanaSelect.innerHTML = '<option value="">Select Thana</option>';
-
-            if (districtId) {
-                const thanas = document.querySelectorAll('option[data-district]');
-                thanas.forEach(option => {
-                    if (option.dataset.district === districtId) {
-                        thanaSelect.appendChild(option.cloneNode(true));
-                    }
-                });
-            }
-        });
-
-        // Form validation
-        document.getElementById('doctorForm').addEventListener('submit', function(e) {
-            const password = document.getElementById('password').value;
-            const mobile = document.getElementById('mobile_number').value;
-
-            // Password validation
-            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-            if (!passwordRegex.test(password)) {
-                e.preventDefault();
-                alert('Password must contain at least 8 characters including uppercase, lowercase, digit, and special character.');
-                return false;
-            }
-
-            // Mobile number validation
-            const mobileRegex = /^\+8801[0-9]{9}$/;
-            if (!mobileRegex.test(mobile)) {
-                e.preventDefault();
-                alert('Mobile number must be in format +8801XXXXXXXXX');
-                return false;
-            }
-
-            return true;
-        });
-    </script>
+    <script src="/static/js/admin.js"></script>
 </body>
 </html>

@@ -158,6 +158,11 @@
                                 <i class="fas fa-plus"></i> Create Appointment
                             </a>
                         </div>
+                        <div class="col-md-4">
+                            <button onclick="openAndPrintReport()" class="btn btn-dark btn-lg w-100 mb-3">
+                                <i class="fas fa-file-alt"></i> Generate Report
+                            </button>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-4">
@@ -209,6 +214,19 @@
 
         // Load stats on page load
         document.addEventListener('DOMContentLoaded', loadStats);
+    </script>
+    <script>
+        // Open the monthly report in a new tab and trigger print
+        function openAndPrintReport() {
+            const reportWindow = window.open('/admin/monthly-report', '_blank');
+            if (reportWindow) {
+                reportWindow.onload = function() {
+                    setTimeout(function() {
+                        reportWindow.print();
+                    }, 500); // Wait for content to load
+                };
+            }
+        }
     </script>
 </body>
 </html>

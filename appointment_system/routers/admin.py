@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, extract, func, or_
 from database import get_db
 import models
 from auth_utils import verify_password, create_access_token, get_current_user_from_token
@@ -164,12 +164,16 @@ async def create_appointment_form(
     # Get all patients and doctors
     patients = db.query(models.User).filter(models.User.user_type == models.UserType.PATIENT).all()
     doctors = db.query(models.DoctorProfile).options(joinedload(models.DoctorProfile.user)).all()
-
+    status = [{
+        "name": appt_status.name,
+        "value": appt_status.value
+    } for appt_status in models.AppointmentStatus]
     return templates.TemplateResponse("admin_create_appointment.html", {
         "request": request,
         "user": current_user,
         "patients": patients,
-        "doctors": doctors
+        "doctors": doctors,
+        "status": status
     })
 
 @router.post("/admin/appointments/create")
@@ -206,7 +210,7 @@ async def create_appointment(
             appointment_date=appt_date,
             appointment_time=appt_time,
             notes=notes,
-            status=models.AppointmentStatus.CONFIRMED
+            status=models.AppointmentStatus.PENDING
         )
 
         db.add(appointment)
@@ -464,3 +468,53 @@ async def get_admin_stats(
         "total_patients": total_patients,
         "pending_appointments": pending_appointments
     }
+
+@router.get("/admin/monthly-report", response_class=HTMLResponse)
+async def admin_monthly_report(request: Request, db: Session = Depends(get_db)):
+    """Generate a monthly report for all doctors (admin only)"""
+    user = get_admin_user(request, db)
+    if not user:
+        return RedirectResponse(url="/admin/login", status_code=303)
+
+    # Get current month and year
+    now = datetime.now()
+    year = now.year
+    month = now.month
+
+    # Query: For each doctor, count unique patients, total appointments, and total money earned
+    results = (
+        db.query(
+            models.DoctorProfile.id.label("doctor_id"),
+            models.User.full_name.label("doctor_name"),
+            func.count(models.Appointment.id).label("total_appointments"),
+            func.count(func.distinct(models.Appointment.patient_id)).label("total_patient_visits"),
+            (func.count(models.Appointment.id) * models.DoctorProfile.consultation_fee).label("total_money_earned")
+        )
+        .join(models.User, models.DoctorProfile.user_id == models.User.id)
+        .outerjoin(models.Appointment, (
+            (models.Appointment.doctor_id == models.DoctorProfile.id) &
+            (extract('year', models.Appointment.appointment_date) == year) &
+            (extract('month', models.Appointment.appointment_date) == month) &
+            (models.Appointment.status == models.AppointmentStatus.COMPLETED)
+        ))
+        .group_by(models.DoctorProfile.id, models.User.full_name, models.DoctorProfile.consultation_fee)
+        .order_by(models.User.full_name)
+        .all()
+    )
+
+    # Prepare data for template
+    report_data = [
+        {
+            "doctor_name": row.doctor_name,
+            "total_patient_visits": row.total_patient_visits,
+            "total_appointments": row.total_appointments,
+            "total_money_earned": row.total_money_earned or 0.0
+        }
+        for row in results
+    ]
+
+    return templates.TemplateResponse("admin_monthly_report.html", {
+        "request": request,
+        "user": user,
+        "report_data": report_data
+    })
