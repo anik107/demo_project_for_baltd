@@ -501,20 +501,27 @@ async def admin_monthly_report(request: Request, db: Session = Depends(get_db)):
         .order_by(models.User.full_name)
         .all()
     )
-
+    visits_sum = sum(row.total_patient_visits for row in results)
+    appointments_sum = sum(row.total_appointments for row in results)
+    earnings_sum = sum(row.total_money_earned for row in results)
     # Prepare data for template
     report_data = [
         {
             "doctor_name": row.doctor_name,
             "total_patient_visits": row.total_patient_visits,
             "total_appointments": row.total_appointments,
-            "total_money_earned": row.total_money_earned or 0.0
-        }
-        for row in results
+            "total_money_earned": row.total_money_earned or 0.0,
+        } for row in results
     ]
+    summary = {
+        "visits_sum": visits_sum,
+        "appointments_sum": appointments_sum,
+        "earnings_sum": earnings_sum
+    }
 
     return templates.TemplateResponse("admin_monthly_report.html", {
         "request": request,
         "user": user,
-        "report_data": report_data
+        "report_data": report_data,
+        "summary": summary
     })

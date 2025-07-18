@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="container mt-4">
-        <h2 class="mb-4">Monthly Doctor Report</h2>
+        <h2 class="mb-4">Monthly Appointments Report</h2>
         <table class="table table-bordered table-striped">
             <thead class="table-dark">
                 <tr>
@@ -27,6 +27,12 @@
                     <td>{{ '{:.2f}'.format(row.total_money_earned) }}</td>
                 </tr>
             {% endfor %}
+            <tr class="fw-bold bg-light">
+                <td>Total</td>
+                <td>{{ summary.visits_sum }}</td>
+                <td>{{ summary.appointments_sum }}</td>
+                <td>{{ '{:.2f}'.format(summary.earnings_sum) }}</td>
+            </tr>
             </tbody>
         </table>
     </div>
