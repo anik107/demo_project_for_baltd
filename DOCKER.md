@@ -43,10 +43,10 @@ docker compose logs -f app
 docker compose logs -f db
 
 # Stop services
-docker compose down
+sudo docker compose down
 
 # Stop services and remove volumes (warning: deletes database data)
-docker compose down -v
+sudo docker compose down -v
 
 # Restart specific service
 docker compose restart app

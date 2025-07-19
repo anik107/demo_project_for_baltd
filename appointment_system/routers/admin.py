@@ -261,21 +261,65 @@ async def create_doctor_form(
 
 @router.post("/admin/doctors/create")
 async def create_doctor(
-    full_name: str = Form(...),
-    email: str = Form(...),
-    mobile_number: str = Form(...),
-    password: str = Form(...),
-    license_number: str = Form(...),
-    experience_years: int = Form(...),
-    consultation_fee: float = Form(...),
-    division_id: int = Form(...),
-    district_id: int = Form(...),
-    thana_id: int = Form(...),
+    request: Request,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(require_admin_cookie)
 ):
     """Create a new doctor"""
     from auth_utils import hash_password
+    import re
+    from datetime import datetime
+
+    # Get form data
+    form_data = await request.form()
+
+    # Extract basic fields
+    full_name = form_data.get("full_name")
+    email = form_data.get("email")
+    mobile_number = form_data.get("mobile_number")
+    password = form_data.get("password")
+    license_number = form_data.get("license_number")
+    experience_years = int(form_data.get("experience_years"))
+    consultation_fee = float(form_data.get("consultation_fee"))
+    division_id = int(form_data.get("division_id"))
+    district_id = int(form_data.get("district_id"))
+    thana_id = int(form_data.get("thana_id"))
+
+    # Extract timeslot data
+    timeslots = []
+    for key, value in form_data.items():
+        if key.startswith("start_time_"):
+            timeslot_id = key.split("_")[-1]
+            end_time_key = f"end_time_{timeslot_id}"
+            end_time = form_data.get(end_time_key)
+
+            if value and end_time:
+                # Validate time format
+                time_pattern = r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+                if not re.match(time_pattern, value) or not re.match(time_pattern, end_time):
+                    raise HTTPException(status_code=400, detail="Invalid time format. Use HH:MM format.")
+
+                # Validate that start time is before end time
+                start_dt = datetime.strptime(value, "%H:%M")
+                end_dt = datetime.strptime(end_time, "%H:%M")
+
+                if start_dt >= end_dt:
+                    raise HTTPException(status_code=400, detail="Start time must be before end time")
+
+                # Validate minimum consultation time (30 minutes)
+                time_diff = (end_dt - start_dt).total_seconds() / 60
+                if time_diff < 30:
+                    raise HTTPException(status_code=400, detail="Minimum consultation time is 30 minutes")
+
+                timeslots.append({
+                    "start_time": value,
+                    "end_time": end_time,
+                    "is_available": True
+                })
+
+    # Validate that at least one timeslot is provided
+    if not timeslots:
+        raise HTTPException(status_code=400, detail="At least one timeslot is required for doctors")
 
     # Check if user already exists
     existing_user = db.query(models.User).filter(
@@ -315,13 +359,25 @@ async def create_doctor(
             consultation_fee=consultation_fee
         )
         db.add(doctor_profile)
+        db.flush()  # Get the doctor profile ID
+
+        # Create timeslots
+        for timeslot_data in timeslots:
+            timeslot = models.DoctorTimeslot(
+                doctor_id=doctor_profile.id,
+                start_time=timeslot_data["start_time"],
+                end_time=timeslot_data["end_time"],
+                is_available=timeslot_data["is_available"]
+            )
+            db.add(timeslot)
+
         db.commit()
 
         return RedirectResponse(url="/admin/doctors", status_code=303)
 
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to create doctor")
+        raise HTTPException(status_code=500, detail=f"Failed to create doctor: {str(e)}")
 
 @router.post("/admin/doctors/{doctor_id}/delete")
 async def delete_doctor(
@@ -330,7 +386,11 @@ async def delete_doctor(
     current_user: models.User = Depends(require_admin_cookie)
 ):
     """Delete a doctor and their user account"""
-    doctor = db.query(models.DoctorProfile).filter(models.DoctorProfile.id == doctor_id).first()
+    # Load doctor with user relationship
+    doctor = db.query(models.DoctorProfile).options(
+        joinedload(models.DoctorProfile.user)
+    ).filter(models.DoctorProfile.id == doctor_id).first()
+
     if not doctor:
         raise HTTPException(status_code=404, detail="Doctor not found")
 
@@ -345,13 +405,51 @@ async def delete_doctor(
     if active_appointments > 0:
         raise HTTPException(status_code=400, detail="Cannot delete doctor with active appointments")
 
-    # Delete doctor profile and user
-    user = doctor.user
-    db.delete(doctor)
-    db.delete(user)
-    db.commit()
+    try:
+        # Get the user before deleting doctor profile
+        user = doctor.user
+        if not user:
+            raise HTTPException(status_code=404, detail="Associated user not found")
 
-    return RedirectResponse(url="/admin/doctors", status_code=303)
+        user_id = user.id
+
+        # Delete related records in proper order
+        # 1. Delete doctor timeslots
+        timeslots_deleted = db.query(models.DoctorTimeslot).filter(
+            models.DoctorTimeslot.doctor_id == doctor_id
+        ).delete(synchronize_session=False)
+
+        # 2. Delete all appointments (including completed/cancelled ones)
+        appointments_deleted = db.query(models.Appointment).filter(
+            models.Appointment.doctor_id == doctor_id
+        ).delete(synchronize_session=False)
+
+        # 3. Delete notifications for this user
+        notifications_deleted = db.query(models.Notification).filter(
+            models.Notification.user_id == user_id
+        ).delete(synchronize_session=False)
+
+        # 4. Delete token blacklist entries for this user
+        tokens_deleted = db.query(models.TokenBlacklist).filter(
+            models.TokenBlacklist.user_id == user_id
+        ).delete(synchronize_session=False)
+
+        # 5. Delete doctor profile
+        db.delete(doctor)
+
+        # 6. Finally delete the user
+        db.delete(user)
+
+        # Commit all changes
+        db.commit()
+
+        return RedirectResponse(url="/admin/doctors", status_code=303)
+
+    except Exception as e:
+        db.rollback()
+        # Log the error for debugging
+        print(f"Error deleting doctor {doctor_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete doctor: {str(e)}")
 
 @router.get("/admin/doctors/{doctor_id}/edit", response_class=HTMLResponse)
 async def edit_doctor_form(
