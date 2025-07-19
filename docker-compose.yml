@@ -1,0 +1,47 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: appointment_db
+    environment:
+      POSTGRES_DB: appointment_system
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+    networks:
+      - appointment_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Application
+  app:
+    build: .
+    container_name: appointment_app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/appointment_system
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DEBUG=True
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./appointment_system/static:/app/static
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - appointment_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  appointment_network:
+    driver: bridge

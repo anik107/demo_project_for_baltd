@@ -1,0 +1,38 @@
+# Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git and documentation
+.git/
+.gitignore
+README.md
+*.md
+
+# Docker files
+Dockerfile
+docker-compose*
+.dockerignore
+
+# Environment files
+.env*
+
+# Logs
+*.log

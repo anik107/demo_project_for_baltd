@@ -47,20 +47,6 @@ app.include_router(admin.router)
 # Include general router without prefix for serving HTML pages
 app.include_router(general.router)
 
-# Add a route to manually trigger reminder notifications (for testing/admin use)
-@app.post("/api/admin/send-reminders")
-async def trigger_reminder_notifications():
-    """Manually trigger sending of reminder notifications"""
-    from task_scheduler import TaskScheduler
-
-    db = SessionLocal()
-    try:
-        reminders_sent = TaskScheduler.send_daily_appointment_reminders(db)
-        return {"message": f"Successfully sent {reminders_sent} reminder notifications"}
-    except Exception as e:
-        return {"error": f"Failed to send reminders: {str(e)}"}
-    finally:
-        db.close()
 
 @app.on_event("startup")
 async def startup_event():
