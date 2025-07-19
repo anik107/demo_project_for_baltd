@@ -213,48 +213,89 @@ This structure ensures data integrity and efficient querying while maintaining c
 ## Complete Database Schema Diagram
 
 ```mermaid
-graph TB
+flowchart TB
     %% Location Tables
-    subgraph "Location Hierarchy"
-        DIV[📍 DIVISIONS<br/>- id (PK)<br/>- name]
-        DIST[🏘️ DISTRICTS<br/>- id (PK)<br/>- name<br/>- division_id (FK)]
-        THAN[🏢 THANAS<br/>- id (PK)<br/>- name<br/>- district_id (FK)]
+    subgraph Location["📍 Location Hierarchy"]
+        DIV["DIVISIONS
+        • id (PK)
+        • name"]
+        DIST["DISTRICTS
+        • id (PK)
+        • name
+        • division_id (FK)"]
+        THAN["THANAS
+        • id (PK)
+        • name
+        • district_id (FK)"]
     end
 
     %% User Management
-    subgraph "User Management"
-        USER[👤 USERS<br/>- id (PK)<br/>- full_name<br/>- email<br/>- mobile_number<br/>- user_type<br/>- division_id (FK)<br/>- district_id (FK)<br/>- thana_id (FK)<br/>- profile_image]
-        DOCPROF[👨‍⚕️ DOCTOR_PROFILES<br/>- id (PK)<br/>- user_id (FK)<br/>- license_number<br/>- experience_years<br/>- consultation_fee]
-        TIMESLOT[⏰ DOCTOR_TIMESLOTS<br/>- id (PK)<br/>- doctor_id (FK)<br/>- start_time<br/>- end_time<br/>- is_available]
+    subgraph Users["👤 User Management"]
+        USER["USERS
+        • id (PK)
+        • full_name
+        • email
+        • mobile_number
+        • user_type
+        • location FKs
+        • profile_image"]
+        DOCPROF["DOCTOR_PROFILES
+        • id (PK)
+        • user_id (FK)
+        • license_number
+        • experience_years
+        • consultation_fee"]
+        TIMESLOT["DOCTOR_TIMESLOTS
+        • id (PK)
+        • doctor_id (FK)
+        • start_time
+        • end_time
+        • is_available"]
     end
 
     %% Appointments
-    subgraph "Appointment System"
-        APPT[📅 APPOINTMENTS<br/>- id (PK)<br/>- patient_id (FK)<br/>- doctor_id (FK)<br/>- appointment_date<br/>- appointment_time<br/>- notes<br/>- status]
+    subgraph Appointments["📅 Appointment System"]
+        APPT["APPOINTMENTS
+        • id (PK)
+        • patient_id (FK)
+        • doctor_id (FK)
+        • appointment_date
+        • appointment_time
+        • notes
+        • status"]
     end
 
     %% Notifications & Security
-    subgraph "Support Systems"
-        NOTIF[🔔 NOTIFICATIONS<br/>- id (PK)<br/>- user_id (FK)<br/>- is_read<br/>- created_at]
-        TOKEN[🔒 TOKEN_BLACKLIST<br/>- id (PK)<br/>- token_jti<br/>- user_id (FK)<br/>- blacklisted_at<br/>- expires_at]
+    subgraph Support["🔔 Support Systems"]
+        NOTIF["NOTIFICATIONS
+        • id (PK)
+        • user_id (FK)
+        • is_read
+        • created_at"]
+        TOKEN["TOKEN_BLACKLIST
+        • id (PK)
+        • token_jti
+        • user_id (FK)
+        • blacklisted_at
+        • expires_at"]
     end
 
     %% Relationships
-    DIV -->|1:N| DIST
-    DIST -->|1:N| THAN
+    DIV -.->|1:N| DIST
+    DIST -.->|1:N| THAN
 
-    USER -->|1:1| DOCPROF
-    DOCPROF -->|1:N| TIMESLOT
+    USER -.->|1:1 optional| DOCPROF
+    DOCPROF -.->|1:N| TIMESLOT
 
-    USER -->|N:1| DIV
-    USER -->|N:1| DIST
-    USER -->|N:1| THAN
+    USER -.->|N:1| DIV
+    USER -.->|N:1| DIST
+    USER -.->|N:1| THAN
 
-    USER -->|1:N Patient| APPT
-    DOCPROF -->|1:N Doctor| APPT
+    USER -.->|1:N as Patient| APPT
+    DOCPROF -.->|1:N as Doctor| APPT
 
-    USER -->|1:N| NOTIF
-    USER -->|1:N| TOKEN
+    USER -.->|1:N| NOTIF
+    USER -.->|1:N| TOKEN
 
     %% Styling
     classDef locationStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
