@@ -298,10 +298,10 @@ flowchart TB
     USER -.->|1:N| TOKEN
 
     %% Styling
-    classDef locationStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef userStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef appointmentStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef supportStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef locationStyle fill:#bbdefb,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef userStyle fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef appointmentStyle fill:#ffe0b2,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef supportStyle fill:#f8bbd9,stroke:#c2185b,stroke-width:2px,color:#000
 
     class DIV,DIST,THAN locationStyle
     class USER,DOCPROF,TIMESLOT userStyle
