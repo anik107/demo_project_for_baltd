@@ -386,7 +386,6 @@ async def delete_doctor(
     current_user: models.User = Depends(require_admin_cookie)
 ):
     """Delete a doctor and their user account"""
-    # Load doctor with user relationship
     doctor = db.query(models.DoctorProfile).options(
         joinedload(models.DoctorProfile.user)
     ).filter(models.DoctorProfile.id == doctor_id).first()
