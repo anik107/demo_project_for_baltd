@@ -235,7 +235,7 @@
                 <div class="sidebar-item" id="sidebarDoctorTools" style="display: none;">
                     <i class="fas fa-stethoscope"></i> Doctor Tools
                 </div>
-                <div class="sidebar-item">
+                <div class="sidebar-item" onclick="window.location.href='/users/{user.id}/edit'">
                     <i class="fas fa-user-edit"></i> Profile Settings
                 </div>
                 <div class="sidebar-item">
@@ -328,9 +328,9 @@
                             </a>
                         </div>
                         <div class="col-md-4">
-                            <button class="btn btn-info btn-lg w-100 mb-3">
+                            <a href="/user/{user.id}/edit" class="btn btn-info btn-lg w-100 mb-3">
                                 <i class="fas fa-user-edit"></i> Edit Profile
-                            </button>
+                             </a>
                         </div>
                         <div class="col-md-4" id="doctorQuickActions" style="display: none;">
                             <button class="btn btn-warning btn-lg w-100 mb-3">
@@ -492,6 +492,25 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadUserStats();
         });
+
+        // Logout function
+        function logout() {
+            fetch('/api/auth/web-logout', {
+                method: 'POST',
+                credentials: 'include'
+            }).then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    window.location.href = '/login';
+                }
+            }).catch(error => {
+                console.error('Logout error:', error);
+                // Clear local data and redirect anyway
+                localStorage.clear();
+                window.location.href = '/login';
+            });
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - Appointment System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        .user-sidebar {
+            background-color: #2c3e50;
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #34495e;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .sidebar-item:hover {
+            background-color: #34495e;
+        }
+        .sidebar-item.active {
+            background-color: #3498db;
+        }
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .form-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .profile-image-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .profile-image img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #3498db;
+        }
+        .profile-placeholder {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0 auto;
+        }
+        .profile-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 user-sidebar p-0">
+                <div class="p-3">
+                    <h4><i class="fas fa-user"></i> User Panel</h4>
+                    <hr>
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/dashboard'">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/appointments'">
+                    <i class="fas fa-calendar-check"></i> My Appointments
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/appointments'">
+                    <i class="fas fa-plus-circle"></i> Book Appointment
+                </div>
+                <div class="sidebar-item active">
+                    <i class="fas fa-user-edit"></i> Profile Settings
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-search"></i> Find Doctors
+                </div>
+                <div class="sidebar-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Edit Profile</h2>
+                    <a href="/dashboard" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+
+                <!-- Error Alert -->
+                {% if error %}
+                <div class="alert alert-error alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <!-- Profile Information Card -->
+                <div class="profile-info">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <div class="profile-image-section">
+                                {% if user.profile_image_filename %}
+                                <div class="profile-image">
+                                    <img src="/static/profiles/{{ user.profile_image_filename }}" alt="Profile Image">
+                                </div>
+                                {% else %}
+                                <div class="profile-placeholder">
+                                    {{ user.full_name[0].upper() if user.full_name else 'U' }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-10">
+                            <h4>{{ user.full_name }}</h4>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-envelope"></i> {{ user.email }}
+                            </p>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-phone"></i> {{ user.mobile_number }}
+                            </p>
+                            <span class="badge bg-primary">{{ user.user_type.value }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <form method="POST" action="/users/profile/edit" id="profileForm">
+                        <h5 class="mb-4"><i class="fas fa-user"></i> Personal Information</h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="full_name" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="mobile_number" class="form-label">Mobile Number *</label>
+                                    <input type="text" class="form-control" id="mobile_number" name="mobile_number"
+                                           value="{{ user.mobile_number }}" required
+                                           placeholder="+8801XXXXXXXXX" pattern="^\+8801[0-9]{9}$">
+                                    <div class="form-text">Format: +8801XXXXXXXXX (must start with +8801)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">User Type</label>
+                                    <input type="text" class="form-control" value="{{ user.user_type.value }}" readonly>
+                                    <div class="form-text">User type cannot be changed</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h5 class="mb-4"><i class="fas fa-map-marker-alt"></i> Address Information</h5>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="division_id" class="form-label">Division *</label>
+                                    <select class="form-select" id="division_id" name="division_id" required>
+                                        <option value="">Select Division</option>
+                                        {% for division in divisions %}
+                                        <option value="{{ division.id }}" {% if division.id == user.division_id %}selected{% endif %}>{{ division.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="district_id" class="form-label">District *</label>
+                                    <select class="form-select" id="district_id" name="district_id" required>
+                                        <option value="">Select District</option>
+                                        {% for district in districts %}
+                                        <option value="{{ district.id }}"
+                                                data-division="{{ district.division_id }}"
+                                                {% if district.id == user.district_id %}selected{% endif %}>{{ district.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="thana_id" class="form-label">Thana *</label>
+                                    <select class="form-select" id="thana_id" name="thana_id" required>
+                                        <option value="">Select Thana</option>
+                                        {% for thana in thanas %}
+                                        <option value="{{ thana.id }}"
+                                                data-district="{{ thana.district_id }}"
+                                                {% if thana.id == user.thana_id %}selected{% endif %}>{{ thana.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="/dashboard" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Information Card -->
+                <div class="mt-4">
+                    <div class="card border-info">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="fas fa-info-circle"></i> Profile Update Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0">
+                                <li>All fields marked with (*) are required</li>
+                                <li>Mobile number must be in Bangladesh format (+8801XXXXXXXXX)</li>
+                                <li>Email and mobile number must be unique across all users</li>
+                                <li>Changes will take effect immediately</li>
+                                <li>To change your password, use the "Change Password" option from your dashboard</li>
+                                <li>Profile image updates are not available in this form - contact support if needed</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize the form with current values
+        document.addEventListener('DOMContentLoaded', function() {
+            // Trigger change event to populate districts and thanas based on current selection
+            document.getElementById('division_id').dispatchEvent(new Event('change'));
+            setTimeout(() => {
+                document.getElementById('district_id').dispatchEvent(new Event('change'));
+            }, 100);
+        });
+
+        // Logout function
+        function logout() {
+            // Clear user token cookie and redirect to login
+            document.cookie = "user_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = '/login';
+        }
+
+        // Cascading dropdowns for location
+        document.getElementById('division_id').addEventListener('change', function() {
+            const divisionId = this.value;
+            const districtSelect = document.getElementById('district_id');
+            const thanaSelect = document.getElementById('thana_id');
+            const currentDistrictId = '{{ user.district_id }}';
+
+            // Clear and repopulate district dropdown
+            const allDistricts = Array.from(document.querySelectorAll('#district_id option[data-division]'));
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+
+            if (divisionId) {
+                allDistricts.forEach(option => {
+                    if (option.dataset.division === divisionId) {
+                        const newOption = option.cloneNode(true);
+                        if (option.value === currentDistrictId) {
+                            newOption.selected = true;
+                        }
+                        districtSelect.appendChild(newOption);
+                    }
+                });
+            }
+
+            // Reset thana
+            thanaSelect.innerHTML = '<option value="">Select Thana</option>';
+        });
+
+        document.getElementById('district_id').addEventListener('change', function() {
+            const districtId = this.value;
+            const thanaSelect = document.getElementById('thana_id');
+            const currentThanaId = '{{ user.thana_id }}';
+
+            // Clear and repopulate thana dropdown
+            const allThanas = Array.from(document.querySelectorAll('option[data-district]'));
+            thanaSelect.innerHTML = '<option value="">Select Thana</option>';
+
+            if (districtId) {
+                allThanas.forEach(option => {
+                    if (option.dataset.district === districtId) {
+                        const newOption = option.cloneNode(true);
+                        if (option.value === currentThanaId) {
+                            newOption.selected = true;
+                        }
+                        thanaSelect.appendChild(newOption);
+                    }
+                });
+            }
+        });
+
+        // Form validation
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            const mobile = document.getElementById('mobile_number').value;
+
+            // Mobile number validation
+            const mobileRegex = /^\+8801[0-9]{9}$/;
+            if (!mobileRegex.test(mobile)) {
+                e.preventDefault();
+                alert('Mobile number must be in format +8801XXXXXXXXX');
+                return false;
+            }
+
+            // Email validation
+            const email = document.getElementById('email').value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                alert('Please enter a valid email address');
+                return false;
+            }
+
+            return true;
+        });
+    </script>
+</body>
+</html>
