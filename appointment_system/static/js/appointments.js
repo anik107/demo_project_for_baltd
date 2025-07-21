@@ -111,7 +111,12 @@ class AppointmentManager {
         }
 
         try {
-            slotsContainer.innerHTML = '<p>Loading available time slots...</p>';
+            slotsContainer.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Loading available time slots...</p>
+                </div>
+            `;
 
             console.log('Making request with token:', this.token ? 'Token present' : 'No token');
             console.log('Request URL:', `/api/appointments/doctors/${doctorId}/availability?appointment_date=${date}`);
@@ -129,7 +134,13 @@ class AppointmentManager {
                 // Token is invalid or expired
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('user_data');
-                slotsContainer.innerHTML = '<p>Session expired. Please log in again.</p>';
+                slotsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-lock"></i>
+                        <h3>Session Expired</h3>
+                        <p>Please log in again to view available time slots.</p>
+                    </div>
+                `;
                 this.showMessage('Session expired. Please log in again.', 'error');
                 setTimeout(() => {
                     window.location.href = '/login';
@@ -149,7 +160,13 @@ class AppointmentManager {
 
         } catch (error) {
             console.error('Error loading time slots:', error);
-            slotsContainer.innerHTML = '<p>Error loading time slots</p>';
+            slotsContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error Loading Slots</h3>
+                    <p>Unable to load time slots. Please try again.</p>
+                </div>
+            `;
             this.showMessage('Error loading time slots: ' + error.message, 'error');
         }
     }
@@ -158,7 +175,13 @@ class AppointmentManager {
         const container = document.getElementById('timeSlots');
 
         if (slots.length === 0) {
-            container.innerHTML = '<p>No available time slots for this date</p>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No Available Slots</h3>
+                    <p>No available time slots for this date. Please try another date.</p>
+                </div>
+            `;
             return;
         }
 
@@ -167,7 +190,10 @@ class AppointmentManager {
         slots.forEach(slot => {
             const slotElement = document.createElement('div');
             slotElement.className = 'time-slot available';
-            slotElement.textContent = slot.time;
+            slotElement.innerHTML = `
+                <i class="fas fa-clock"></i>
+                <span>${slot.time}</span>
+            `;
             slotElement.addEventListener('click', () => this.selectTimeSlot(slotElement, slot.time));
             container.appendChild(slotElement);
         });
@@ -244,7 +270,12 @@ class AppointmentManager {
         const container = document.getElementById('appointmentsList');
 
         try {
-            container.innerHTML = '<div class="loading">Loading appointments...</div>';
+            container.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Loading your appointments...</p>
+                </div>
+            `;
 
             const response = await fetch('/api/appointments/', {
                 headers: {
@@ -260,7 +291,13 @@ class AppointmentManager {
             this.renderAppointments(appointments);
 
         } catch (error) {
-            container.innerHTML = '<p>Error loading appointments</p>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error Loading Appointments</h3>
+                    <p>Unable to load your appointments. Please try again.</p>
+                </div>
+            `;
             this.showMessage('Error loading appointments: ' + error.message, 'error');
         }
     }
@@ -269,7 +306,13 @@ class AppointmentManager {
         const container = document.getElementById('appointmentsList');
 
         if (appointments.length === 0) {
-            container.innerHTML = '<p>No appointments found</p>';
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <h3>No Appointments Found</h3>
+                    <p>You haven't booked any appointments yet. Book your first appointment now!</p>
+                </div>
+            `;
             return;
         }
 
@@ -280,26 +323,69 @@ class AppointmentManager {
             card.className = 'appointment-card';
 
             const statusClass = `status-${appointment.status.toLowerCase()}`;
-            const formattedDate = new Date(appointment.appointment_date).toLocaleDateString();
+            const formattedDate = new Date(appointment.appointment_date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
             const formattedTime = appointment.appointment_time;
 
             card.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                    <h3>Dr. ${appointment.doctor_name || 'Unknown'}</h3>
-                    <span class="appointment-status ${statusClass}">${appointment.status}</span>
+                <div class="appointment-header">
+                    <div class="doctor-info">
+                        <h3><i class="fas fa-user-md"></i> Dr. ${appointment.doctor_name || 'Unknown'}</h3>
+                    </div>
+                    <span class="appointment-status ${statusClass}">
+                        ${this.getStatusIcon(appointment.status)} ${appointment.status}
+                    </span>
                 </div>
-                <p><strong>Date:</strong> ${formattedDate}</p>
-                <p><strong>Time:</strong> ${formattedTime}</p>
-                <p><strong>License:</strong> ${appointment.doctor_license || 'N/A'}</p>
-                <p><strong>Fee:</strong> $${appointment.consultation_fee || 'N/A'}</p>
-                ${appointment.notes ? `<p><strong>Notes:</strong> ${appointment.notes}</p>` : ''}
-                <div style="margin-top: 1rem;">
+
+                <div class="appointment-details">
+                    <div class="detail-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span><strong>Date:</strong> ${formattedDate}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-clock"></i>
+                        <span><strong>Time:</strong> ${formattedTime}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-id-badge"></i>
+                        <span><strong>License:</strong> ${appointment.doctor_license || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span><strong>Fee:</strong> $${appointment.consultation_fee || 'N/A'}</span>
+                    </div>
+                </div>
+
+                ${appointment.notes ? `
+                    <div class="appointment-notes">
+                        <div class="detail-item">
+                            <i class="fas fa-notes-medical"></i>
+                            <span><strong>Notes:</strong> ${appointment.notes}</span>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <div class="appointment-actions">
                     ${this.renderAppointmentActions(appointment)}
                 </div>
             `;
 
             container.appendChild(card);
         });
+    }
+
+    getStatusIcon(status) {
+        const icons = {
+            'PENDING': '<i class="fas fa-hourglass-half"></i>',
+            'CONFIRMED': '<i class="fas fa-check-circle"></i>',
+            'CANCELLED': '<i class="fas fa-times-circle"></i>',
+            'COMPLETED': '<i class="fas fa-check-double"></i>'
+        };
+        return icons[status] || '<i class="fas fa-question-circle"></i>';
     }
 
     renderAppointmentActions(appointment) {
@@ -309,17 +395,19 @@ class AppointmentManager {
         let actions = '';
 
         if (canCancel) {
-            actions += `<button onclick="appointmentManager.cancelAppointment(${appointment.id})"
-                        style="background-color: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; margin-right: 0.5rem; cursor: pointer;">
-                        Cancel
-                      </button>`;
+            actions += `
+                <button onclick="appointmentManager.cancelAppointment(${appointment.id})" class="btn-action btn-cancel">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            `;
         }
 
         if (canReschedule) {
-            actions += `<button onclick="appointmentManager.rescheduleAppointment(${appointment.id})"
-                        style="background-color: #ffc107; color: black; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">
-                        Reschedule
-                      </button>`;
+            actions += `
+                <button onclick="appointmentManager.rescheduleAppointment(${appointment.id})" class="btn-action btn-reschedule">
+                    <i class="fas fa-calendar-alt"></i> Reschedule
+                </button>
+            `;
         }
 
         return actions;
@@ -361,7 +449,18 @@ class AppointmentManager {
 
     showMessage(message, type) {
         const messageArea = document.getElementById('messageArea');
-        messageArea.innerHTML = `<div class="${type}">${message}</div>`;
+        const iconMap = {
+            'error': 'fas fa-exclamation-triangle',
+            'success': 'fas fa-check-circle',
+            'info': 'fas fa-info-circle'
+        };
+
+        messageArea.innerHTML = `
+            <div class="message ${type}">
+                <i class="${iconMap[type] || 'fas fa-info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
 
         // Auto-hide after 5 seconds
         setTimeout(() => {
@@ -377,21 +476,32 @@ function showTab(tabName) {
         content.style.display = 'none';
     });
 
-    // Remove active class from all buttons
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.classList.remove('active');
+    // Remove active class from all sidebar items
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.classList.remove('active');
     });
 
     // Show selected tab
     document.getElementById(tabName).style.display = 'block';
 
-    // Add active class to clicked button
-    event.target.classList.add('active');
-
-    // Load appointments when switching to appointments tab
-    if (tabName === 'appointments') {
-        appointmentManager.loadAppointments();
+    // Update page title and activate sidebar item
+    if (tabName === 'booking') {
+        document.getElementById('page-title').textContent = 'Book New Appointment';
+        document.getElementById('book-sidebar').classList.add('active');
+    } else if (tabName === 'appointments') {
+        document.getElementById('page-title').textContent = 'My Appointments';
+        document.getElementById('appointments-sidebar').classList.add('active');
+        // Load appointments when switching to appointments tab
+        if (typeof appointmentManager !== 'undefined') {
+            appointmentManager.loadAppointments();
+        }
     }
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('access_token');
+    window.location.href = '/login';
 }
 
 // Initialize when page loads
@@ -407,42 +517,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     appointmentManager = new AppointmentManager();
 });
-
-// Add CSS for tabs
-const style = document.createElement('style');
-style.textContent = `
-    .tabs {
-        display: flex;
-        margin-bottom: 2rem;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .tab-button {
-        background: none;
-        border: none;
-        padding: 1rem 2rem;
-        cursor: pointer;
-        border-bottom: 3px solid transparent;
-        transition: all 0.3s;
-    }
-
-    .tab-button:hover {
-        background-color: #f8f9fa;
-    }
-
-    .tab-button.active {
-        border-bottom-color: #007bff;
-        color: #007bff;
-        font-weight: bold;
-    }
-
-    .tab-content {
-        animation: fadeIn 0.3s ease-in;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-`;
-document.head.appendChild(style);

@@ -59,6 +59,19 @@ class AppointmentService:
         return db_appointment
 
     @staticmethod
+    def get_appointments_count(*args, **kwargs) -> int:
+        """
+        Get the count of appointments based on filters
+        """
+        db = kwargs.get('db')
+        patient_id = kwargs.get('user_id')
+
+        query = db.query(Appointment)
+        if patient_id:
+            query = query.filter(Appointment.patient_id == patient_id)
+        return query.count()
+
+    @staticmethod
     def _is_doctor_available(db: Session, doctor_id: int, appointment_date: date, appointment_time: time) -> bool:
         """
         Check if doctor has available time slots for the requested time

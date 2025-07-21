@@ -333,3 +333,29 @@ async def get_dashboard_with_notifications(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching dashboard data: {str(e)}"
         )
+
+@router.get("/appointments_count")
+async def get_appointments_count(
+    current_user: UserSchema = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get count of appointments for the current user"""
+    try:
+        from appointment_service import AppointmentService
+
+        if current_user.user_type != "PATIENT":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only patients can view appointment count"
+            )
+
+        count = AppointmentService.get_appointments_count(db=db, user_id=current_user.id)
+        return {"appointments_count": count}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching appointments count: {str(e)}"
+        )
