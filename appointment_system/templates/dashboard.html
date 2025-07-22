@@ -235,7 +235,7 @@
                 <div class="sidebar-item" id="sidebarDoctorTools" style="display: none;">
                     <i class="fas fa-stethoscope"></i> Doctor Tools
                 </div>
-                <div class="sidebar-item" onclick="window.location.href='/users/{user.id}/edit'">
+                <div class="sidebar-item" onclick="openEditProfile()">
                     <i class="fas fa-user-edit"></i> Profile Settings
                 </div>
                 <div class="sidebar-item">
@@ -328,7 +328,7 @@
                             </a>
                         </div>
                         <div class="col-md-4">
-                            <a href="/user/{user.id}/edit" class="btn btn-info btn-lg w-100 mb-3">
+                            <a href="#" onclick="openEditProfile()" class="btn btn-info btn-lg w-100 mb-3">
                                 <i class="fas fa-user-edit"></i> Edit Profile
                              </a>
                         </div>
@@ -510,6 +510,25 @@
                 localStorage.clear();
                 window.location.href = '/login';
             });
+        }
+
+        // Function to open edit profile page
+        function openEditProfile() {
+            const userData = getUserData();
+            if (userData && userData.id) {
+                window.location.href = `/api/users/${userData.id}/edit`;
+            } else {
+                console.error('User data not available for profile edit');
+                // Try to fetch user data and then redirect
+                fetchUserDataFromServer().then(() => {
+                    const refreshedUserData = getUserData();
+                    if (refreshedUserData && refreshedUserData.id) {
+                        window.location.href = `/api/users/${refreshedUserData.id}/edit`;
+                    } else {
+                        alert('Unable to load user information. Please try refreshing the page.');
+                    }
+                });
+            }
         }
     </script>
 </body>

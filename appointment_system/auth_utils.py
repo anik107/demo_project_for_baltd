@@ -183,8 +183,13 @@ def is_token_blacklisted(jti: str, db) -> bool:
     Check if a token is blacklisted
     """
     from models import TokenBlacklist
-    blacklisted_token = db.query(TokenBlacklist).filter(TokenBlacklist.token_jti == jti).first()
-    return blacklisted_token is not None
+    try:
+        blacklisted_token = db.query(TokenBlacklist).filter(TokenBlacklist.token_jti == jti).first()
+        return blacklisted_token is not None
+    except AttributeError:
+        return False
+    except Exception:
+        return False
 
 def blacklist_token(token: str, user_id: int, db) -> bool:
     """
