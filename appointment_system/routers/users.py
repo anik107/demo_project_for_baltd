@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status, Form, UploadFile, File
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
@@ -52,37 +52,6 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
         )
     return user
 
-@router.get("/{user_id}/profile-image")
-async def get_user_profile_image(user_id: int, db: Session = Depends(get_db)):
-    """Get user profile image"""
-    user = UserService.get_user_by_id(db, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
-    if not user.profile_image_filename:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Profile image not found"
-        )
-
-    # Construct path to profile image
-    current_dir = Path(__file__).parent.parent
-    image_path = current_dir / "static" / "profiles" / user.profile_image_filename
-
-    if not image_path.exists():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Profile image file not found"
-        )
-
-    return FileResponse(
-        path=str(image_path),
-        media_type=user.profile_image_content_type,
-        filename=user.profile_image_filename
-    )
 
 @router.get("/{user_id}/edit", response_class=HTMLResponse)
 async def edit_user_information(
@@ -97,17 +66,19 @@ async def edit_user_information(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-        # Get location data
+
+    # Get location data
     divisions = db.query(models.Division).all()
     districts = db.query(models.District).all()
     thanas = db.query(models.Thana).all()
+
     return templates.TemplateResponse("edit_profile.html", {
         "request": request,
         "current_user": user,
         "user": user,
         "divisions": divisions,
         "districts": districts,
-        "thanas": thanas
+        "thanas": thanas,
     })
 
 @router.post("/{user_id}/edit")
@@ -124,8 +95,7 @@ async def update_user_profile(
     new_password: Optional[str] = Form(None),
     confirm_password: Optional[str] = Form(None),
     profile_image: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(require_user_cookie)
+    db: Session = Depends(get_db)
 ):
     """Update user profile information"""
     user = UserService.get_user_by_id(db, user_id)
@@ -135,7 +105,7 @@ async def update_user_profile(
             detail="User not found"
         )
 
-    if current_user.id != user_id and current_user.user_type != models.UserType.ADMIN:
+    if user.id != user_id and user.user_type != models.UserType.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only edit your own profile"

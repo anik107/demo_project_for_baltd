@@ -2,6 +2,9 @@ const API_BASE_URL = 'http://localhost:8000/api';
 // Dashboard JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     initializeDashboard();
+
+    // Start token expiration monitoring
+    startTokenExpirationMonitoring();
 });
 
 function initializeDashboard() {
@@ -196,6 +199,247 @@ function isTokenExpired(token) {
     }
 }
 
+// Get token expiration time in seconds
+function getTokenExpiration(token) {
+    if (!token) return null;
+
+    try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+
+        const payload = JSON.parse(atob(parts[1]));
+        return payload.exp;
+    } catch (error) {
+        console.error('Error getting token expiration:', error);
+        return null;
+    }
+}
+
+// Get time remaining until token expires (in seconds)
+function getTimeUntilExpiration(token) {
+    const expiration = getTokenExpiration(token);
+    if (!expiration) return 0;
+
+    const now = Math.floor(Date.now() / 1000);
+    return Math.max(0, expiration - now);
+}
+
+// Token expiration warning variables
+let warningShown = false;
+let warningInterval = null;
+let monitoringInterval = null;
+
+// Start monitoring token expiration
+function startTokenExpirationMonitoring() {
+    const token = getAuthToken();
+    if (!token) return;
+
+    // Clear any existing intervals
+    if (monitoringInterval) {
+        clearInterval(monitoringInterval);
+    }
+
+    // Check every minute
+    monitoringInterval = setInterval(() => {
+        const currentToken = getAuthToken();
+        if (!currentToken) {
+            clearInterval(monitoringInterval);
+            return;
+        }
+
+        const timeRemaining = getTimeUntilExpiration(currentToken);
+
+        // Show warning 5 minutes (300 seconds) before expiration
+        if (timeRemaining <= 300 && timeRemaining > 0 && !warningShown) {
+            showExpirationWarning(timeRemaining);
+        } else if (timeRemaining <= 0) {
+            // Token has expired
+            clearInterval(monitoringInterval);
+            handleTokenExpiration();
+        }
+    }, 60000); // Check every minute
+}
+
+// Show expiration warning dialog
+function showExpirationWarning(secondsRemaining) {
+    warningShown = true;
+
+    // Create warning modal HTML
+    const warningHtml = `
+        <div id="tokenWarningModal" class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-warning">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Session Expiring Soon
+                        </h5>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-clock text-warning" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6>Your session will expire in:</h6>
+                        <div id="countdownTimer" class="h4 text-danger font-weight-bold mb-3">
+                            ${formatTime(secondsRemaining)}
+                        </div>
+                        <p class="text-muted">
+                            You will be automatically logged out when your session expires.
+                            Click "Stay Logged In" to continue your session.
+                        </p>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn btn-primary" onclick="refreshUserSession()">
+                            <i class="fas fa-refresh me-1"></i>
+                            Stay Logged In
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="dismissWarning()">
+                            Dismiss
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" onclick="logout()">
+                            Logout Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add modal to page
+    const modalContainer = document.createElement('div');
+    modalContainer.innerHTML = warningHtml;
+    document.body.appendChild(modalContainer);
+
+    // Start countdown timer
+    startCountdownTimer(secondsRemaining);
+}
+
+// Start countdown timer in the warning modal
+function startCountdownTimer(initialSeconds) {
+    let remainingSeconds = initialSeconds;
+
+    warningInterval = setInterval(() => {
+        remainingSeconds--;
+
+        const timerElement = document.getElementById('countdownTimer');
+        if (timerElement) {
+            timerElement.textContent = formatTime(remainingSeconds);
+
+            // Change color as time gets closer to expiration
+            if (remainingSeconds <= 60) {
+                timerElement.className = 'h4 text-danger font-weight-bold mb-3 animate-pulse';
+            } else if (remainingSeconds <= 120) {
+                timerElement.className = 'h4 text-warning font-weight-bold mb-3';
+            }
+        }
+
+        if (remainingSeconds <= 0) {
+            clearInterval(warningInterval);
+            handleTokenExpiration();
+        }
+    }, 1000);
+}
+
+// Format seconds into MM:SS
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+// Handle token expiration
+function handleTokenExpiration() {
+    console.log('Token expired, automatically logging out...');
+
+    // Clear intervals
+    if (warningInterval) clearInterval(warningInterval);
+    if (monitoringInterval) clearInterval(monitoringInterval);
+
+    // Remove warning modal if it exists
+    const modal = document.getElementById('tokenWarningModal');
+    if (modal) {
+        modal.remove();
+    }
+
+    // Show expiration message
+    alert('Your session has expired. You will be redirected to the login page.');
+
+    // Clear storage and redirect
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_data');
+    window.location.href = '/login';
+}
+
+// Refresh user session by fetching new user data
+async function refreshUserSession() {
+    try {
+        // Close the warning modal
+        dismissWarning();
+
+        // Reset warning state
+        warningShown = false;
+
+        // Fetch fresh user data which should refresh the session
+        await fetchUserDataFromServer();
+
+        // Restart monitoring with the new token
+        startTokenExpirationMonitoring();
+
+        // Show success message
+        showNotification('Session refreshed successfully!', 'success');
+
+    } catch (error) {
+        console.error('Error refreshing session:', error);
+        showNotification('Failed to refresh session. Please login again.', 'error');
+
+        // If refresh fails, redirect to login
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 2000);
+    }
+}
+
+// Dismiss the warning modal
+function dismissWarning() {
+    const modal = document.getElementById('tokenWarningModal');
+    if (modal) {
+        modal.remove();
+    }
+
+    if (warningInterval) {
+        clearInterval(warningInterval);
+    }
+
+    // Don't reset warningShown here - we don't want to show the warning again
+}
+
+// Show notification message
+function showNotification(message, type = 'info') {
+    const alertClass = type === 'success' ? 'alert-success' :
+                      type === 'error' ? 'alert-danger' : 'alert-info';
+
+    const notification = document.createElement('div');
+    notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Make functions available globally
+window.refreshUserSession = refreshUserSession;
+window.dismissWarning = dismissWarning;
+
 // Utility functions (reuse from login.js)
 function getAuthToken() {
     return localStorage.getItem('access_token');
@@ -238,6 +482,10 @@ async function logout() {
     if (confirm('Are you sure you want to logout?')) {
         try {
             const token = getAuthToken();
+
+            // Clear monitoring intervals
+            if (warningInterval) clearInterval(warningInterval);
+            if (monitoringInterval) clearInterval(monitoringInterval);
 
             // Call the backend logout endpoint to blacklist the token
             if (token) {
