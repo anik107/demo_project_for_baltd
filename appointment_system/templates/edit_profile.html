@@ -6,56 +6,25 @@
     <title>Edit Profile - Appointment System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="/static/css/style.css" rel="stylesheet">
     <style>
-        .navbar-brand {
-            font-weight: bold;
-            color: #3498db !important;
-        }
-        .main-content {
-            background-color: #f8f9fa;
-            min-height: 100vh;
-            padding: 20px;
-        }
+        .navbar-brand { font-weight: bold; color: #3498db !important; }
+        .main-content { background-color: #f8f9fa; min-height: 100vh; padding: 20px; }
         .form-card {
-            background: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            max-width: 800px;
-            margin: 0 auto;
+            background: white; border-radius: 10px; padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;
         }
-        .profile-image-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+        .profile-image-section { text-align: center; margin-bottom: 30px; }
         .profile-image {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #3498db;
-            margin-bottom: 15px;
+            width: 150px; height: 150px; border-radius: 50%; object-fit: cover;
+            border: 4px solid #3498db; margin-bottom: 15px;
         }
         .profile-placeholder {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background-color: #ecf0f1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            border: 4px solid #bdc3c7;
+            width: 150px; height: 150px; border-radius: 50%; background-color: #ecf0f1;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 15px; border: 4px solid #bdc3c7;
         }
-        .btn-primary {
-            background-color: #3498db;
-            border-color: #3498db;
-        }
-        .btn-primary:hover {
-            background-color: #2980b9;
-            border-color: #2980b9;
-        }
+        .btn-primary { background-color: #3498db; border-color: #3498db; }
+        .btn-primary:hover { background-color: #2980b9; border-color: #2980b9; }
     </style>
 </head>
 <body>
@@ -66,12 +35,8 @@
                 <i class="fas fa-calendar-check"></i> Appointment System
             </a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/dashboard">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                </a>
-                <a class="nav-link" href="/api/logout">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
+                <a class="nav-link" href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a class="nav-link" href="/api/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </nav>
@@ -103,119 +68,66 @@
 
                 <form method="POST" action="/api/users/{{ user.id }}/edit" id="profileForm" enctype="multipart/form-data">
                     <h5 class="mb-4"><i class="fas fa-user"></i> Personal Information</h5>
-
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="full_name" class="form-label">Full Name *</label>
-                                <input type="text" class="form-control" id="full_name" name="full_name"
-                                       value="{{ user.full_name }}" required>
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="full_name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name }}" required>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email Address *</label>
-                                <input type="email" class="form-control" id="email" name="email"
-                                       value="{{ user.email }}" required>
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email Address *</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
                         </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="mobile_number" class="form-label">Mobile Number *</label>
-                                <input type="text" class="form-control" id="mobile_number" name="mobile_number"
-                                       value="{{ user.mobile_number }}" placeholder="+8801XXXXXXXXX"
-                                       pattern="^\+8801[0-9]{9}$" required>
-                                <div class="form-text">Format: +8801XXXXXXXXX (must start with +8801)</div>
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="mobile_number" class="form-label">Mobile Number *</label>
+                            <input type="text" class="form-control" id="mobile_number" name="mobile_number"
+                                   value="{{ user.mobile_number }}" pattern="^\+8801[0-9]{9}$" required>
+                            <div class="form-text">Format: +8801XXXXXXXXX</div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="profile_image" class="form-label">Profile Image</label>
-                                <input type="file" class="form-control" id="profile_image" name="profile_image"
-                                       accept="image/jpeg,image/png,image/jpg">
-                                <div class="form-text">Upload a new profile image (JPG, PNG only, max 5MB)</div>
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="profile_image" class="form-label">Profile Image</label>
+                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/jpeg,image/png,image/jpg">
+                            <div class="form-text">JPG, PNG only, max 5MB</div>
                         </div>
                     </div>
 
                     <hr class="my-4">
                     <h5 class="mb-4"><i class="fas fa-map-marker-alt"></i> Address Information</h5>
-
                     <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="division_id" class="form-label">Division *</label>
-                                <select class="form-select" id="division_id" name="division_id" required>
-                                    <option value="">Select Division</option>
-                                    {% for division in divisions %}
-                                        <option value="{{ division.id }}"
-                                                {% if division.id == user.division_id %}selected{% endif %}>
-                                            {{ division.name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="division_id" class="form-label">Division *</label>
+                            <select class="form-select" id="division_id" name="division_id" required>
+                                <option value="">Select Division</option>
+                            </select>
                         </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="district_id" class="form-label">District *</label>
-                                <select class="form-select" id="district_id" name="district_id" required>
-                                    <option value="">Select District</option>
-                                    {% for district in districts %}
-                                        <option value="{{ district.id }}" data-division="{{ district.division_id }}"
-                                                {% if district.id == user.district_id %}selected{% endif %}>
-                                            {{ district.name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="district_id" class="form-label">District *</label>
+                            <select class="form-select" id="district_id" name="district_id" required>
+                                <option value="">Select District</option>
+                            </select>
                         </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="thana_id" class="form-label">Thana *</label>
-                                <select class="form-select" id="thana_id" name="thana_id" required>
-                                    <option value="">Select Thana</option>
-                                    {% for thana in thanas %}
-                                        <option value="{{ thana.id }}" data-district="{{ thana.district_id }}"
-                                                {% if thana.id == user.thana_id %}selected{% endif %}>
-                                            {{ thana.name }}
-                                        </option>
-
-                                    {% endfor %}
-                                </select>
-                            </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="thana_id" class="form-label">Thana *</label>
+                            <select class="form-select" id="thana_id" name="thana_id" required>
+                                <option value="">Select Thana</option>
+                            </select>
                         </div>
                     </div>
 
                     <hr class="my-4">
                     <h5 class="mb-4"><i class="fas fa-lock"></i> Change Password (Optional)</h5>
-
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="current_password" class="form-label">Current Password</label>
-                                <input type="password" class="form-control" id="current_password" name="current_password">
-                                <div class="form-text">Leave blank if you don't want to change password</div>
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password">
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="new_password" class="form-label">New Password</label>
-                                <input type="password" class="form-control" id="new_password" name="new_password">
-                                <div class="form-text">Min 8 chars, 1 uppercase, 1 digit, 1 special char</div>
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password">
+                            <div class="form-text">Min 8 chars, 1 uppercase, 1 digit, 1 special char</div>
                         </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="confirm_password" class="form-label">Confirm New Password</label>
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password">
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
                         </div>
                     </div>
 
@@ -227,150 +139,185 @@
                     </div>
                 </form>
             </div>
-
-            <!-- Information Card -->
-            <div class="mt-4">
-                <div class="card border-info">
-                    <div class="card-header bg-info text-white">
-                        <h6 class="mb-0"><i class="fas fa-info-circle"></i> Profile Update Information</h6>
-                    </div>
-                    <div class="card-body">
-                        <ul class="mb-0">
-                            <li>All fields marked with (*) are required</li>
-                            <li>Mobile number must be in Bangladesh format (+8801XXXXXXXXX)</li>
-                            <li>Email must be unique across all users</li>
-                            <li>Profile image should be in JPG or PNG format (max 5MB)</li>
-                            <li>Password change is optional - leave blank to keep current password</li>
-                            <li>New password must contain at least 8 characters, 1 uppercase letter, 1 digit, and 1 special character</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Initialize the form with current values
-        document.addEventListener('DOMContentLoaded', function() {
-            // Trigger change event to populate districts and thanas based on current selection
-            document.getElementById('division_id').dispatchEvent(new Event('change'));
-            setTimeout(() => {
-                document.getElementById('district_id').dispatchEvent(new Event('change'));
-            }, 100);
-        });
+        const currentUser = {
+            division_id: {{ user.division_id if user.division_id else 'null' }},
+            district_id: {{ user.district_id if user.district_id else 'null' }},
+            thana_id: {{ user.thana_id if user.thana_id else 'null' }}
+        };
 
-        // Cascading dropdowns for location
-        document.getElementById('division_id').addEventListener('change', function() {
-            const divisionId = this.value;
-            const districtSelect = document.getElementById('district_id');
-            const thanaSelect = document.getElementById('thana_id');
-            const currentDistrictId = '{{ user.district_id }}';
+        document.addEventListener('DOMContentLoaded', loadDivisions);
 
-            // Clear and repopulate district dropdown
-            const allDistricts = Array.from(document.querySelectorAll('#district_id option[data-division]'));
-            districtSelect.innerHTML = '<option value="">Select District</option>';
+        async function fetchData(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+            return response.json();
+        }
 
-            if (divisionId) {
-                allDistricts.forEach(option => {
-                    if (option.dataset.division === divisionId) {
-                        const newOption = option.cloneNode(true);
-                        if (option.value === currentDistrictId) {
-                            newOption.selected = true;
-                        }
-                        districtSelect.appendChild(newOption);
-                    }
-                });
+        async function populateSelect(selectId, options, currentValue = null) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = `<option value="">Select ${selectId.replace('_id', '').replace('_', ' ')}</option>`;
+
+            options.forEach(option => {
+                const optionEl = document.createElement('option');
+                optionEl.value = option.id;
+                optionEl.textContent = option.name;
+                if (option.id === currentValue) optionEl.selected = true;
+                select.appendChild(optionEl);
+            });
+        }
+
+        async function loadDivisions() {
+            try {
+                const divisions = await fetchData('/api/locations/divisions');
+                await populateSelect('division_id', divisions, currentUser.division_id);
+                if (currentUser.division_id) await loadDistricts(currentUser.division_id);
+            } catch (error) {
+                console.error('Error loading divisions:', error);
             }
+        }
+
+        async function loadDistricts(divisionId) {
+            try {
+                const districts = await fetchData(`/api/locations/divisions/${divisionId}/districts`);
+                await populateSelect('district_id', districts, currentUser.district_id);
+                document.getElementById('thana_id').innerHTML = '<option value="">Select Thana</option>';
+                if (currentUser.district_id) await loadThanas(currentUser.district_id);
+            } catch (error) {
+                console.error('Error loading districts:', error);
+            }
+        }
+
+        async function loadThanas(districtId) {
+            try {
+                const thanas = await fetchData(`/api/locations/districts/${districtId}/thanas`);
+                await populateSelect('thana_id', thanas, currentUser.thana_id);
+            } catch (error) {
+                console.error('Error loading thanas:', error);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('division_id').addEventListener('change', function() {
+            document.getElementById('district_id').innerHTML = '<option value="">Select District</option>';
+            document.getElementById('thana_id').innerHTML = '<option value="">Select Thana</option>';
+            if (this.value) loadDistricts(this.value);
         });
 
         document.getElementById('district_id').addEventListener('change', function() {
-            const districtId = this.value;
-            const thanaSelect = document.getElementById('thana_id');
-            const currentThanaId = '{{ user.thana_id }}';
-
-            // Clear and repopulate thana dropdown
-            const allThanas = Array.from(document.querySelectorAll('#thana_id option[data-district]'));
-            thanaSelect.innerHTML = '<option value="">Select Thana</option>';
-
-            if (districtId) {
-                allThanas.forEach(option => {
-                    if (option.dataset.district === districtId) {
-                        const newOption = option.cloneNode(true);
-                        if (option.value === currentThanaId) {
-                            newOption.selected = true;
-                        }
-                        thanaSelect.appendChild(newOption);
-                    }
-                });
-            }
+            document.getElementById('thana_id').innerHTML = '<option value="">Select Thana</option>';
+            if (this.value) loadThanas(this.value);
         });
 
-        // Form validation
-        document.getElementById('profileForm').addEventListener('submit', function(e) {
+        // Form validation and submission
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Prevent default form submission
+
             const mobile = document.getElementById('mobile_number').value;
             const currentPassword = document.getElementById('current_password').value;
             const newPassword = document.getElementById('new_password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
 
-            // Mobile number validation
-            const mobileRegex = /^\+8801[0-9]{9}$/;
-            if (!mobileRegex.test(mobile)) {
-                e.preventDefault();
+            if (!/^\+8801[0-9]{9}$/.test(mobile)) {
                 alert('Mobile number must be in format +8801XXXXXXXXX');
-                return false;
+                return;
             }
 
-            // Password validation (if changing password)
             if (currentPassword || newPassword || confirmPassword) {
-                if (!currentPassword) {
-                    e.preventDefault();
-                    alert('Current password is required to change password');
-                    return false;
+                if (!currentPassword || !newPassword) {
+                    alert('Both current and new passwords are required');
+                    return;
                 }
-
-                if (!newPassword) {
-                    e.preventDefault();
-                    alert('New password is required');
-                    return false;
-                }
-
                 if (newPassword !== confirmPassword) {
-                    e.preventDefault();
                     alert('New password and confirm password do not match');
-                    return false;
+                    return;
                 }
-
-                // Password strength validation
-                const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-                if (!passwordRegex.test(newPassword)) {
-                    e.preventDefault();
-                    alert('New password must contain at least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 digit, and 1 special character');
-                    return false;
+                if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(newPassword)) {
+                    alert('Password must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 digit, and 1 special character');
+                    return;
                 }
             }
 
-            return true;
+            // Submit form with bearer token
+            await submitFormWithToken();
         });
 
-        // File upload validation
-        document.getElementById('profile_image').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                // Check file size (5MB limit)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('File size must be less than 5MB');
-                    this.value = '';
+        // Function to get auth token from localStorage
+        function getAuthToken() {
+            return localStorage.getItem('access_token');
+        }
+
+        // Function to submit form with bearer token
+        async function submitFormWithToken() {
+            try {
+                const token = getAuthToken();
+                if (!token) {
+                    alert('Authentication token not found. Please login again.');
+                    window.location.href = '/login';
                     return;
                 }
 
-                // Check file type
-                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-                if (!allowedTypes.includes(file.type)) {
-                    alert('Only JPG and PNG files are allowed');
-                    this.value = '';
-                    return;
+                const formData = new FormData(document.getElementById('profileForm'));
+
+                const response = await fetch(`/api/users/{{ user.id }}/edit`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Check if response is a redirect
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        // Success - redirect to dashboard
+                        window.location.href = '/dashboard?success=Profile updated successfully';
+                    }
+                } else if (response.status === 401) {
+                    // Unauthorized - token might be expired
+                    alert('Your session has expired. Please login again.');
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('user_data');
+                    window.location.href = '/login';
+                } else if (response.status === 403) {
+                    alert('You do not have permission to edit this profile.');
+                } else {
+                    // Try to get error message from response
+                    try {
+                        const errorData = await response.json();
+                        alert(`Error: ${errorData.detail || 'Unknown error occurred'}`);
+                    } catch {
+                        const errorText = await response.text();
+                        console.error('Error response:', errorText);
+                        alert('Error updating profile. Please try again.');
+                    }
                 }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                alert('Error updating profile. Please check your connection and try again.');
+            }
+        }
+
+        // File validation
+        document.getElementById('profile_image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                this.value = '';
+                return;
+            }
+
+            if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+                alert('Only JPG and PNG files are allowed');
+                this.value = '';
             }
         });
     </script>

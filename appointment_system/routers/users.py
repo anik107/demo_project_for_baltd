@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status, Form, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Form, UploadFile, File, Header
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -30,6 +30,38 @@ def get_user_from_cookie(request: Request, db: Session = Depends(get_db)):
         return user
     except:
         return None
+
+def get_user_from_bearer_token(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)):
+    """Get user from Bearer token"""
+    if not authorization:
+        return None
+
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            return None
+
+        user = get_current_user_from_token(token, db)
+        return user
+    except:
+        return None
+
+def get_authenticated_user(request: Request, authorization: Optional[str] = Header(None), db: Session = Depends(get_db)):
+    """Get user from either cookie or bearer token"""
+    # Try bearer token first
+    user = get_user_from_bearer_token(authorization, db)
+    if user:
+        return user
+
+    # Fallback to cookie
+    user = get_user_from_cookie(request, db)
+    if user:
+        return user
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not authenticated"
+    )
 
 def require_user_cookie(request: Request, db: Session = Depends(get_db)):
     """Require user authentication via cookie"""
@@ -95,7 +127,8 @@ async def update_user_profile(
     new_password: Optional[str] = Form(None),
     confirm_password: Optional[str] = Form(None),
     profile_image: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    authenticated_user: models.User = Depends(get_authenticated_user)
 ):
     """Update user profile information"""
     user = UserService.get_user_by_id(db, user_id)
@@ -105,7 +138,7 @@ async def update_user_profile(
             detail="User not found"
         )
 
-    if user.id != user_id and user.user_type != models.UserType.ADMIN:
+    if authenticated_user.id != user_id and authenticated_user.user_type != models.UserType.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only edit your own profile"
@@ -119,21 +152,21 @@ async def update_user_profile(
 
         if existing_user:
             error_msg = "Email already exists" if existing_user.email == email else "Mobile number already exists"
-            return RedirectResponse(url=f"/users/{user_id}/edit?error={error_msg}", status_code=303)
+            return RedirectResponse(url=f"/api/users/{user_id}/edit?error={error_msg}", status_code=303)
 
         # Handle password change if provided
         if current_password or new_password or confirm_password:
             if not current_password:
-                return RedirectResponse(url=f"/users/{user_id}/edit?error=Current password is required", status_code=303)
+                return RedirectResponse(url=f"/api/users/{user_id}/edit?error=Current password is required", status_code=303)
 
             if not verify_password(current_password, user.hashed_password):
-                return RedirectResponse(url=f"/users/{user_id}/edit?error=Current password is incorrect", status_code=303)
+                return RedirectResponse(url=f"/api/users/{user_id}/edit?error=Current password is incorrect", status_code=303)
 
             if not new_password:
-                return RedirectResponse(url=f"/users/{user_id}/edit?error=New password is required", status_code=303)
+                return RedirectResponse(url=f"/api/users/{user_id}/edit?error=New password is required", status_code=303)
 
             if new_password != confirm_password:
-                return RedirectResponse(url=f"/users/{user_id}/edit?error=Passwords do not match", status_code=303)
+                return RedirectResponse(url=f"/api/users/{user_id}/edit?error=Passwords do not match", status_code=303)
 
             # Update password
             user.hashed_password = hash_password(new_password)
@@ -143,12 +176,12 @@ async def update_user_profile(
             # Validate file type
             allowed_types = ["image/jpeg", "image/jpg", "image/png"]
             if profile_image.content_type not in allowed_types:
-                return RedirectResponse(url=f"/users/{user_id}/edit?error=Only JPG and PNG files are allowed", status_code=303)
+                return RedirectResponse(url=f"/api/users/{user_id}/edit?error=Only JPG and PNG files are allowed", status_code=303)
 
             # Validate file size (5MB limit)
             content = await profile_image.read()
             if len(content) > 5 * 1024 * 1024:
-                return RedirectResponse(url=f"/users/{user_id}/edit?error=File size must be less than 5MB", status_code=303)
+                return RedirectResponse(url=f"/api/users/{user_id}/edit?error=File size must be less than 5MB", status_code=303)
 
             # Generate unique filename
             file_extension = profile_image.filename.split('.')[-1].lower()
@@ -177,6 +210,12 @@ async def update_user_profile(
         user.full_name = full_name
         user.email = email
         user.mobile_number = mobile_number
+        if db.query(models.Division).filter(models.Division.id == division_id).first() is None:
+            return RedirectResponse(url=f"/api/users/{user_id}/edit?error=Invalid division", status_code=303)
+        if db.query(models.District).filter(models.District.id == district_id, models.District.division_id == division_id).first() is None:
+            return RedirectResponse(url=f"/api/users/{user_id}/edit?error=Invalid district for the selected division", status_code=303)
+        if db.query(models.Thana).filter(models.Thana.id == thana_id, models.Thana.district_id == district_id).first() is None:
+            return RedirectResponse(url=f"/api/users/{user_id}/edit?error=Invalid thana for the selected district", status_code=303)
         user.division_id = division_id
         user.district_id = district_id
         user.thana_id = thana_id
@@ -188,4 +227,4 @@ async def update_user_profile(
 
     except Exception as e:
         db.rollback()
-        return RedirectResponse(url=f"/users/{user_id}/edit?error=An error occurred while updating profile", status_code=303)
+        return RedirectResponse(url=f"/api/users/{user_id}/edit?error=An error occurred while updating profile", status_code=303)
