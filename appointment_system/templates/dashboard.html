@@ -265,7 +265,7 @@
                     <div class="col-md-3">
                         <div class="stats-card appointments">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div onclick="window.location.href='/appointments'" style="cursor: pointer;">
+                                <div>
                                     <h3 id="user-appointments">...</h3>
                                     <p class="mb-0">My Appointments</p>
                                 </div>
@@ -302,7 +302,7 @@
                     </div>
                     <div class="col-md-3">
                         <div class="stats-card doctors">
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="window.location.href='api/doctors/list'">
                                 <div>
                                     <h3 id="available-doctors">...</h3>
                                     <p class="mb-0">Available Doctors</p>

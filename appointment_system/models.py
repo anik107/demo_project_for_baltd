@@ -82,6 +82,7 @@ class DoctorProfile(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False, unique=True)
     license_number = Column(String, unique=True, nullable=False)
+    specialization = Column(String, nullable=True)
     experience_years = Column(Integer, nullable=False)
     consultation_fee = Column(Float, nullable=False)
 

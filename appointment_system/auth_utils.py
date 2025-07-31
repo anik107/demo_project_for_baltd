@@ -8,7 +8,10 @@ import secrets
 from typing import Tuple, Optional, Dict, Any
 from PIL import Image
 import io
+import logging
 from datetime import datetime, timedelta
+
+_logger = logging.getLogger(__name__)
 
 try:
     import jwt
@@ -175,7 +178,8 @@ def verify_access_token(token: str) -> Optional[Dict[str, Any]]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as e:
+        _logger.error(f"JWT verification failed: {str(e)}")
         return None
 
 def is_token_blacklisted(jti: str, db) -> bool:

@@ -156,6 +156,23 @@ async function fetchUserDataFromServer() {
         const appointmentsData = await userAppointments.json();
         console.log('Fetched user appointments:', appointmentsData);
         document.getElementById('user-appointments').textContent = appointmentsData.appointments_count || '0';
+        debugger
+        // Get all doctor counts
+        const doctorCountResponse = await fetch(`${API_BASE_URL}/doctors/count_doctors`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!doctorCountResponse.ok) {
+            console.error('Failed to fetch doctor count:', doctorCountResponse.status, doctorCountResponse.statusText);
+        }
+        const doctorCountData = await doctorCountResponse.json();
+        console.log('Fetched doctor count:', doctorCountData);
+        document.getElementById('available-doctors').textContent = doctorCountData || '0';
+
+
         // Store the user data for future use
         localStorage.setItem('user_data', JSON.stringify(userData));
 
