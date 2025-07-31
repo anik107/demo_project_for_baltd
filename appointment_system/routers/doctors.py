@@ -63,8 +63,7 @@ def get_authenticated_user(request: Request, authorization: Optional[str] = Head
 @router.get("/list", response_class=HTMLResponse)
 async def get_all_doctors(
     request: Request,
-    db: Session = Depends(get_db),
-   current_user: UserSchema = Depends(get_authenticated_user)
+    db: Session = Depends(get_db)
 ):
     """View all doctors"""
     doctors = db.query(models.DoctorProfile).options(
@@ -74,7 +73,6 @@ async def get_all_doctors(
 
     return templates.TemplateResponse("doctors_list.html", {
         "request": request,
-        "user": current_user,
         "doctors": doctors
     })
 
