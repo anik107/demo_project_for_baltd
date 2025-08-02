@@ -255,6 +255,42 @@ async def admin_patients(
         "patients": patients
     })
 
+@router.post("/admin/patients/{patient_id}/delete")
+async def delete_patient(
+    patient_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin_cookie)
+):
+    """Delete a patient and their user account"""
+    patient = db.query(models.User).filter(
+        and_(models.User.id == patient_id, models.User.user_type == models.UserType.PATIENT)
+    ).first()
+
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    try:
+        # Delete related records in proper order
+        # 1. Delete all appointments for this patient
+        db.query(models.Appointment).filter(models.Appointment.patient_id == patient_id).delete(synchronize_session=False)
+
+        # 2. Delete notifications for this user
+        db.query(models.Notification).filter(models.Notification.user_id == patient_id).delete(synchronize_session=False)
+
+        # 3. Delete token blacklist entries for this user
+        db.query(models.TokenBlacklist).filter(models.TokenBlacklist.user_id == patient_id).delete(synchronize_session=False)
+
+        db.delete(patient)
+
+        db.commit()
+        return RedirectResponse(url="/admin/patients", status_code=303)
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete patient: {str(e)}")
+
+
+
 @router.get("/admin/doctors/create", response_class=HTMLResponse)
 async def create_doctor_form(
     request: Request,
