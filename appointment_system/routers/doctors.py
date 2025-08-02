@@ -84,3 +84,9 @@ async def count_doctors(db: Session = Depends(get_db),
         raise HTTPException(status_code=403, detail="Not authorized to count doctors")
     doctors_record = UserService.get_doctors(db)
     return len(doctors_record)
+
+@router.get("/", response_model=list[UserSchema])
+async def get_doctors(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """Get all doctors"""
+    doctors = UserService.get_doctors(db, skip=skip, limit=limit)
+    return doctors

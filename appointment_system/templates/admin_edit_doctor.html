@@ -101,9 +101,9 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">User ID</label>
-                                    <input type="text" class="form-control" value="{{ doctor.user.id }}" readonly>
-                                    <div class="form-text">User ID cannot be changed</div>
+                                    <label for="specialization" class="form-label">Specialization *</label>
+                                    <input type="text" class="form-control" id="specialization" name="specialization" value="{{ doctor.specialization }}" required>
+                                    <div class="form-text">Enter the doctor's specialization (e.g., Cardiology, Neurology)</div>
                                 </div>
                             </div>
                         </div>
@@ -210,62 +210,73 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Initialize the form with current values
-        document.addEventListener('DOMContentLoaded', function() {
-            // Trigger change event to populate districts and thanas based on current selection
-            document.getElementById('division_id').dispatchEvent(new Event('change'));
-            setTimeout(() => {
-                document.getElementById('district_id').dispatchEvent(new Event('change'));
-            }, 100);
-        });
+    const currentUser = {
+            division_id: {{ user.division_id if user.division_id else 'null' }},
+            district_id: {{ user.district_id if user.district_id else 'null' }},
+            thana_id: {{ user.thana_id if user.thana_id else 'null' }}
+        };
 
-        // Cascading dropdowns for location
-        document.getElementById('division_id').addEventListener('change', function() {
-            const divisionId = this.value;
-            const districtSelect = document.getElementById('district_id');
-            const thanaSelect = document.getElementById('thana_id');
-            const currentDistrictId = '{{ doctor.user.district_id }}';
+        document.addEventListener('DOMContentLoaded', loadDivisions);
 
-            // Clear and repopulate district dropdown
-            const allDistricts = Array.from(document.querySelectorAll('#district_id option[data-division]'));
-            districtSelect.innerHTML = '<option value="">Select District</option>';
+        async function fetchData(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+            return response.json();
+        }
 
-            if (divisionId) {
-                allDistricts.forEach(option => {
-                    if (option.dataset.division === divisionId) {
-                        const newOption = option.cloneNode(true);
-                        if (option.value === currentDistrictId) {
-                            newOption.selected = true;
-                        }
-                        districtSelect.appendChild(newOption);
-                    }
-                });
+        async function populateSelect(selectId, options, currentValue = null) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = `<option value="">Select ${selectId.replace('_id', '').replace('_', ' ')}</option>`;
+
+            options.forEach(option => {
+                const optionEl = document.createElement('option');
+                optionEl.value = option.id;
+                optionEl.textContent = option.name;
+                if (option.id === currentValue) optionEl.selected = true;
+                select.appendChild(optionEl);
+            });
+        }
+
+        async function loadDivisions() {
+            try {
+                const divisions = await fetchData('/api/locations/divisions');
+                await populateSelect('division_id', divisions, currentUser.division_id);
+                if (currentUser.division_id) await loadDistricts(currentUser.division_id);
+            } catch (error) {
+                console.error('Error loading divisions:', error);
             }
+        }
 
-            // Reset thana
-            thanaSelect.innerHTML = '<option value="">Select Thana</option>';
+        async function loadDistricts(divisionId) {
+            try {
+                const districts = await fetchData(`/api/locations/divisions/${divisionId}/districts`);
+                await populateSelect('district_id', districts, currentUser.district_id);
+                document.getElementById('thana_id').innerHTML = '<option value="">Select Thana</option>';
+                if (currentUser.district_id) await loadThanas(currentUser.district_id);
+            } catch (error) {
+                console.error('Error loading districts:', error);
+            }
+        }
+
+        async function loadThanas(districtId) {
+            try {
+                const thanas = await fetchData(`/api/locations/districts/${districtId}/thanas`);
+                await populateSelect('thana_id', thanas, currentUser.thana_id);
+            } catch (error) {
+                console.error('Error loading thanas:', error);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('division_id').addEventListener('change', function() {
+            document.getElementById('district_id').innerHTML = '<option value="">Select District</option>';
+            document.getElementById('thana_id').innerHTML = '<option value="">Select Thana</option>';
+            if (this.value) loadDistricts(this.value);
         });
 
         document.getElementById('district_id').addEventListener('change', function() {
-            const districtId = this.value;
-            const thanaSelect = document.getElementById('thana_id');
-            const currentThanaId = '{{ doctor.user.thana_id }}';
-
-            // Clear and repopulate thana dropdown
-            const allThanas = Array.from(document.querySelectorAll('option[data-district]'));
-            thanaSelect.innerHTML = '<option value="">Select Thana</option>';
-
-            if (districtId) {
-                allThanas.forEach(option => {
-                    if (option.dataset.district === districtId) {
-                        const newOption = option.cloneNode(true);
-                        if (option.value === currentThanaId) {
-                            newOption.selected = true;
-                        }
-                        thanaSelect.appendChild(newOption);
-                    }
-                });
-            }
+            document.getElementById('thana_id').innerHTML = '<option value="">Select Thana</option>';
+            if (this.value) loadThanas(this.value);
         });
 
         // Form validation

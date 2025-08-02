@@ -77,6 +77,9 @@
                 <div class="sidebar-item" onclick="window.location.href='/admin/doctors'">
                     <i class="fas fa-user-md"></i> Doctors
                 </div>
+                <div class="sidebar-item" onclick="window.location.href='/admin/patients'">
+                    <i class="fas fa-user-md"></i> Patients
+                </div>
                 <div class="sidebar-item" onclick="window.location.href='/admin/logout'">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </div>
@@ -96,7 +99,7 @@
                     <div class="col-md-3">
                         <div class="stats-card appointments">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                                <div style="cursor: pointer;" onclick="window.location.href='/admin/appointments'">
                                     <h3 id="total-appointments">...</h3>
                                     <p class="mb-0">Total Appointments</p>
                                 </div>
@@ -107,7 +110,7 @@
                     <div class="col-md-3">
                         <div class="stats-card doctors">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                                <div style="cursor: pointer;" onclick="window.location.href='/admin/doctors'">
                                     <h3 id="total-doctors">...</h3>
                                     <p class="mb-0">Total Doctors</p>
                                 </div>

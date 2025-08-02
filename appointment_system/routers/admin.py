@@ -239,6 +239,22 @@ async def admin_doctors(
         "doctors": doctors
     })
 
+# Patient Management
+@router.get("/admin/patients", response_class=HTMLResponse)
+async def admin_patients(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_admin_cookie)
+):
+    """View all patients"""
+    patients = db.query(models.User).filter(models.User.user_type == models.UserType.PATIENT).all()
+
+    return templates.TemplateResponse("admin_patients.html", {
+        "request": request,
+        "user": current_user,
+        "patients": patients
+    })
+
 @router.get("/admin/doctors/create", response_class=HTMLResponse)
 async def create_doctor_form(
     request: Request,
@@ -485,6 +501,7 @@ async def edit_doctor(
     full_name: str = Form(...),
     email: str = Form(...),
     mobile_number: str = Form(...),
+    specialization: str = Form(...),
     license_number: str = Form(...),
     experience_years: int = Form(...),
     consultation_fee: float = Form(...),
@@ -536,6 +553,7 @@ async def edit_doctor(
         doctor.license_number = license_number
         doctor.experience_years = experience_years
         doctor.consultation_fee = consultation_fee
+        doctor.specialization = specialization
 
         db.commit()
         return RedirectResponse(url="/admin/doctors", status_code=303)

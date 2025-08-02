@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Patients - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+        .admin-sidebar {
+            background-color: #2c3e50;
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #34495e;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .sidebar-item:hover {
+            background-color: #34495e;
+        }
+        .sidebar-item.active {
+            background-color: #3498db;
+        }
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .patient-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #28a745;
+        }
+        .patient-avatar {
+            width: 60px;
+            height: 60px;
+            background: #007bff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 admin-sidebar p-0">
+                <div class="p-3">
+                    <h4><i class="fas fa-user-shield"></i> Admin Panel</h4>
+                    <hr>
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/admin'">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/admin/appointments'">
+                    <i class="fas fa-calendar-check"></i> Appointments
+                </div>
+                <div class="sidebar-item active">
+                    <i class="fas fa-users"></i> Patients
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/admin/doctors'">
+                    <i class="fas fa-user-md"></i> Doctors
+                </div>
+                <div class="sidebar-item" onclick="window.location.href='/admin/logout'">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Manage Patients</h2>
+                    <a href="/admin/patients/create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New Patient
+                    </a>
+                </div>
+
+                <!-- Search and Filter -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <input type="text" class="form-control" id="searchFilter" placeholder="Search by patient name, email, or phone number...">
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" id="locationFilter">
+                                    <option value="">All Locations</option>
+                                    <!-- Location options will be populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-secondary w-100" onclick="clearFilters()">Clear Filters</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- patients List -->
+                <div id="patients-container">
+                    {% for patient in patients %}
+                    <div class="patient-card" data-name="{{ patient.full_name.lower() }}" data-email="{{ patient.email.lower() }}" data-phone="{{ patient.mobile_number.lower() }}" data-location="{{ patient.thana.name.lower() }}, {{ patient.district.name.lower() }}, {{ patient.division.name.lower() }}">
+                        <div class="row">
+                            <div class="col-md-1">
+                                <div class="patient-avatar">
+                                    {{ patient.full_name[0].upper() }}
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <h5><i class="fas fa-user"></i> {{ patient.full_name }}</h5>
+                                <p class="text-muted mb-1">
+                                    <i class="fas fa-envelope"></i> {{ patient.email }}
+                                </p>
+                                <p class="text-muted mb-1">
+                                    <i class="fas fa-phone"></i> {{ patient.mobile_number }}
+                                </p>
+                            </div>
+                            <div class="col-md-3">
+                                <p class="mb-1">
+                                    <strong><i class="fas fa-map-marker-alt"></i> Location:</strong>
+                                </p>
+                                <p class="mb-0 text-muted">
+                                    {{ patient.thana.name }}, {{ patient.district.name }}, {{ patient.division.name }}
+                                </p>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mt-3">
+                                    <a href="/admin/patients/{{ patient.id }}/edit" class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <form method="POST" action="/admin/patients/{{ patient.id }}/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this patient? This action cannot be undone.')">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    {% if not patients %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No patients found</h4>
+                        <p class="text-muted">There are currently no patients in the system.</p>
+                        <a href="/admin/patients/create" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add First Patient
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Statistics -->
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5>Total Patients</h5>
+                                <h3>{{ patients|length }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5>Active Patients</h5>
+                                <h3>
+                                    {% set active_patients = patients|selectattr('is_active', 'equalto', true)|list %}
+                                    {{ active_patients|length if active_patients else patients|length }}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h5>Unique Locations</h5>
+                                <h3>
+                                    {% set unique_locations = patients|map(attribute='district.name')|unique|list %}
+                                    {{ unique_locations|length }}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Populate location filter on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            populateLocationFilter();
+        });
+
+        function populateLocationFilter() {
+            const locationFilter = document.getElementById('locationFilter');
+            const patients = document.querySelectorAll('.patient-card');
+            const locations = new Set();
+
+            patients.forEach(patient => {
+                const location = patient.dataset.location;
+                if (location) {
+                    locations.add(location);
+                }
+            });
+
+            // Sort locations alphabetically
+            const sortedLocations = Array.from(locations).sort();
+
+            sortedLocations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location.split(',').map(part =>
+                    part.trim().charAt(0).toUpperCase() + part.trim().slice(1)
+                ).join(', ');
+                locationFilter.appendChild(option);
+            });
+        }
+
+        function filterpatients() {
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            const locationFilter = document.getElementById('locationFilter').value.toLowerCase();
+            const patients = document.querySelectorAll('.patient-card');
+
+            patients.forEach(patient => {
+                let showpatient = true;
+
+                // Search filter
+                if (searchFilter) {
+                    const name = patient.dataset.name;
+                    const email = patient.dataset.email;
+                    const phone = patient.dataset.phone;
+                    const location = patient.dataset.location;
+                    if (!name.includes(searchFilter) && !email.includes(searchFilter) && !phone.includes(searchFilter)) {
+                        showpatient = false;
+                    }
+                }
+
+                // Location filter
+                if (locationFilter) {
+                    const location = patient.dataset.location;
+                    if (!location.includes(locationFilter)) {
+                        showpatient = false;
+                    }
+                }
+
+                patient.style.display = showpatient ? 'block' : 'none';
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('searchFilter').value = '';
+            document.getElementById('locationFilter').value = '';
+            filterpatients();
+        }
+
+        // Add event listeners
+        document.getElementById('searchFilter').addEventListener('input', filterpatients);
+        document.getElementById('locationFilter').addEventListener('change', filterpatients);
+    </script>
+</body>
+</html>
