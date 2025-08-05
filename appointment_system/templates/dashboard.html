@@ -212,6 +212,75 @@
         .notification-link:hover {
             text-decoration: underline;
         }
+
+        /* Doctor Layout Adjustments */
+        .stats-container-doctor {
+            justify-content: center;
+        }
+
+        .stats-container-doctor .col-md-3 {
+            flex: 0 0 auto;
+            width: 33.333333%;
+            max-width: 300px;
+            margin: 0 15px;
+        }
+
+        .quick-actions-doctor {
+            text-align: center;
+        }
+
+        .quick-actions-doctor .row {
+            justify-content: center;
+        }
+
+        .quick-actions-doctor .col-md-4 {
+            flex: 0 0 auto;
+            width: auto;
+            max-width: 300px;
+            margin: 0 10px;
+        }
+
+        /* Doctor-specific stats cards */
+        .stats-card.doctor-patients {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stats-card.doctor-schedule {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        /* Doctor welcome message */
+        .doctor-welcome {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .doctor-welcome h3 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .doctor-welcome p {
+            margin-bottom: 0;
+            opacity: 0.9;
+        }
+
+        /* Responsive adjustments for doctor view */
+        @media (max-width: 768px) {
+            .stats-container-doctor .col-md-3 {
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            .quick-actions-doctor .col-md-4 {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -226,10 +295,10 @@
                 <div class="sidebar-item active">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </div>
-                <div class="sidebar-item" onclick="window.location.href='/appointments'">
+                <div class="sidebar-item" id="my_appointments" onclick="window.location.href='/appointments'">
                     <i class="fas fa-calendar-check"></i> My Appointments
                 </div>
-                <div class="sidebar-item" onclick="window.location.href='/appointments'">
+                <div class="sidebar-item" id="book_appointments" onclick="window.location.href='/appointments'">
                     <i class="fas fa-plus-circle"></i> Book Appointment
                 </div>
                 <div class="sidebar-item" id="sidebarDoctorTools" style="display: none;">
@@ -238,7 +307,7 @@
                 <div class="sidebar-item" onclick="openEditProfile()">
                     <i class="fas fa-user-edit"></i> Profile Settings
                 </div>
-                <div class="sidebar-item">
+                <div class="sidebar-item" id="find_doctors" onclick="window.location.href='api/doctors/list'">
                     <i class="fas fa-search"></i> Find Doctors
                 </div>
                 <div class="sidebar-item" onclick="logout()">
@@ -248,7 +317,21 @@
 
             <!-- Main Content -->
             <div class="col-md-10 main-content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <!-- Doctor Welcome Banner -->
+                <div class="doctor-welcome" id="doctorWelcome" style="display: none;">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3><i class="fas fa-user-md me-2"></i>Welcome to Your Doctor Dashboard</h3>
+                            <p>Manage your practice, appointments, and patient care from your professional dashboard.</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <i class="fas fa-stethoscope fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regular Welcome Section -->
+                <div class="d-flex justify-content-between align-items-center mb-4" id="regularWelcome">
                     <h2>Welcome to Your Dashboard</h2>
                     <div class="text-muted" id="userGreeting">
                         Loading...
@@ -262,7 +345,7 @@
 
                 <!-- Statistics Cards -->
                 <div class="row" id="stats-container">
-                    <div class="col-md-3">
+                    <div class="col-md-3" id="appointmentsStatsCard">
                         <div class="stats-card appointments">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
@@ -300,7 +383,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3" id="availableDoctorsStatsCard">
                         <div class="stats-card doctors">
                             <div class="d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="window.location.href='api/doctors/list'">
                                 <div>
@@ -317,12 +400,12 @@
                 <div class="quick-actions">
                     <h4>Quick Actions</h4>
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-4" id="viewAppointmentsBtn">
                             <a href="/appointments" class="btn btn-primary btn-lg w-100 mb-3">
                                 <i class="fas fa-calendar-check"></i> View My Appointments
                             </a>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4" id="bookAppointmentBtn">
                             <a href="/appointments" class="btn btn-success btn-lg w-100 mb-3">
                                 <i class="fas fa-plus-circle"></i> Book New Appointment
                             </a>
@@ -333,20 +416,25 @@
                              </a>
                         </div>
                         <div class="col-md-4" id="doctorQuickActions" style="display: none;">
-                            <button class="btn btn-warning btn-lg w-100 mb-3">
-                                <i class="fas fa-stethoscope"></i> Manage Schedule
+                            <button class="btn btn-warning btn-lg w-100 mb-3" onclick="manageDoctorSchedule()">
+                                <i class="fas fa-calendar-alt"></i> Manage Schedule
                             </button>
                         </div>
-                        <div class="col-md-4">
-                            <button class="btn btn-secondary btn-lg w-100 mb-3" onclick="window.location.href='api/doctors/list'">
+                        <div class="col-md-4" id="doctorPatientActions" style="display: none;">
+                            <button class="btn btn-success btn-lg w-100 mb-3" onclick="viewTodayAppointments()">
+                                <i class="fas fa-user-injured"></i> Today's Patients
+                            </button>
+                        </div>
+                        <div class="col-md-4" id="findDoctorsBtn">
+                            <button class="btn btn-secondary btn-lg w-100 mb-3" id="" onclick="window.location.href='api/doctors/list'">
                                 <i class="fas fa-search"></i> Find Doctors
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- System Overview -->
-                <div class="mt-4">
+                <!-- System Overview for Patients -->
+                <div class="mt-4" id="system_overview">
                     <div class="card">
                         <div class="card-header">
                             <h5>Welcome to Your Medical Portal</h5>
@@ -361,6 +449,45 @@
                                 <li>Search for doctors and specialists</li>
                             </ul>
                             <p class="text-muted">Use the navigation menu on the left to access different sections of your account.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doctor Dashboard Overview -->
+                <div class="mt-4" id="doctor_overview" style="display: none;">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5><i class="fas fa-stethoscope me-2"></i>Doctor Dashboard Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary"><i class="fas fa-calendar-check me-2"></i>Today's Schedule</h6>
+                                    <p>Manage your appointments and patient consultations efficiently from your dashboard.</p>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check-circle text-success me-2"></i>View today's appointments</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i>Manage patient records</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i>Update appointment status</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-primary"><i class="fas fa-user-md me-2"></i>Professional Tools</h6>
+                                    <p>Access your professional tools and manage your medical practice.</p>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check-circle text-success me-2"></i>Update your availability</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i>Manage specializations</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i>View patient feedback</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Professional Tip:</strong> Keep your profile updated with your latest qualifications and availability to help patients find and book appointments with you.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -477,10 +604,97 @@
 
                 // Show doctor-specific elements if user is a doctor
                 if (userData.user_type === 'DOCTOR') {
+                    debugger
                     const sidebarDoctorTools = document.getElementById('sidebarDoctorTools');
                     const doctorQuickActions = document.getElementById('doctorQuickActions');
+                    const my_appointments = document.getElementById('my_appointments')
+                    const book_appointments = document.getElementById('book_appointments');
+                    const find_doctors = document.getElementById('find_doctors');
+
+                    // Hide sidebar items for doctors
+                    const invisible = [my_appointments, book_appointments, find_doctors];
+                    invisible.forEach(el => {
+                        if (el) el.style.display = 'none';
+                    });
+
+                    <!-- Add Today's Appointments Stats for Doctors -->
+                    const doctorStatsContainer = document.getElementById('stats-container');
+                    if (doctorStatsContainer) {
+                        // Create doctor-specific stats cards
+                        const doctorStatsHtml = `
+                            <div class="col-md-3" id="doctorTodayAppointments">
+                                <div class="stats-card doctor-patients">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h3 id="doctor-today-count">...</h3>
+                                            <p class="mb-0">Today's Patients</p>
+                                        </div>
+                                        <i class="fas fa-user-injured fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3" id="doctorScheduleCard">
+                                <div class="stats-card doctor-schedule">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h3 id="doctor-schedule-status">Active</h3>
+                                            <p class="mb-0">Schedule Status</p>
+                                        </div>
+                                        <i class="fas fa-calendar-alt fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        // Insert the new stats before the profile card
+                        const profileCard = doctorStatsContainer.querySelector('.col-md-3:nth-child(2)');
+                        if (profileCard) {
+                            profileCard.insertAdjacentHTML('beforebegin', doctorStatsHtml);
+                        }
+                    }
+
+                    // Show doctor welcome banner and hide regular welcome
+                    const doctorWelcome = document.getElementById('doctorWelcome');
+                    const regularWelcome = document.getElementById('regularWelcome');
+                    const doctorOverview = document.getElementById('doctor_overview');
+
+                    if (doctorWelcome) doctorWelcome.style.display = 'block';
+                    if (regularWelcome) regularWelcome.style.display = 'none';
+                    if (doctorOverview) doctorOverview.style.display = 'block';
+
+                    // Hide statistics cards for doctors
+                    const appointmentsStatsCard = document.getElementById('appointmentsStatsCard');
+                    const availableDoctorsStatsCard = document.getElementById('availableDoctorsStatsCard');
+                    const statsContainer = document.getElementById('stats-container');
+                    if (appointmentsStatsCard) appointmentsStatsCard.style.display = 'none';
+                    if (availableDoctorsStatsCard) availableDoctorsStatsCard.style.display = 'none';
+                    if (appointmentsStatsCard) appointmentsStatsCard.style.display = 'none';
+                    if (availableDoctorsStatsCard) availableDoctorsStatsCard.style.display = 'none';
+
+                    // Add doctor-specific CSS class for better layout
+                    if (statsContainer) statsContainer.classList.add('stats-container-doctor');
+
+                    // Hide quick action buttons for doctors
+                    const viewAppointmentsBtn = document.getElementById('viewAppointmentsBtn');
+                    const bookAppointmentBtn = document.getElementById('bookAppointmentBtn');
+                    const findDoctorsBtn = document.getElementById('findDoctorsBtn');
+                    const quickActionsContainer = document.querySelector('.quick-actions');
+                    const systemOverView = document.getElementById('system_overview');
+                    if (systemOverView) systemOverView.style.display = 'none';
+                    if (viewAppointmentsBtn) viewAppointmentsBtn.style.display = 'none';
+                    if (bookAppointmentBtn) bookAppointmentBtn.style.display = 'none';
+                    if (findDoctorsBtn) findDoctorsBtn.style.display = 'none';
+
+                    // Add doctor-specific CSS class for better layout
+                    if (quickActionsContainer) quickActionsContainer.classList.add('quick-actions-doctor');
+
+                    // Show doctor-specific elements
                     if (sidebarDoctorTools) sidebarDoctorTools.style.display = 'block';
                     if (doctorQuickActions) doctorQuickActions.style.display = 'block';
+
+                    // Show additional doctor quick actions
+                    const doctorPatientActions = document.getElementById('doctorPatientActions');
+                    if (doctorPatientActions) doctorPatientActions.style.display = 'block';
                 }
             } else {
                 console.log('No user data available, fetching from server...');
@@ -529,6 +743,21 @@
                     }
                 });
             }
+        }
+
+        // Doctor-specific functions
+        function manageDoctorSchedule() {
+            // Placeholder for doctor schedule management
+            alert('Doctor Schedule Management - Feature coming soon!');
+            // In the future, this could navigate to a doctor schedule page
+            // window.location.href = '/doctor/schedule';
+        }
+
+        function viewTodayAppointments() {
+            // Placeholder for viewing today's appointments
+            alert('Today\'s Appointments - Feature coming soon!');
+            // In the future, this could navigate to today's appointments page
+            // window.location.href = '/doctor/appointments/today';
         }
     </script>
 </body>
