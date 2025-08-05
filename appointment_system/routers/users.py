@@ -103,7 +103,11 @@ async def edit_user_information(
     divisions = db.query(models.Division).all()
     districts = db.query(models.District).all()
     thanas = db.query(models.Thana).all()
-
+    if user.user_type == models.UserType.DOCTOR:
+        # For doctors, we could include additional doctor profile data if needed
+        doctor_data = UserService.get_doctor_profile(db, user.id)
+        if doctor_data:
+            user.doctor_profile = doctor_data
     return templates.TemplateResponse("edit_profile.html", {
         "request": request,
         "current_user": user,
@@ -127,6 +131,11 @@ async def update_user_profile(
     new_password: Optional[str] = Form(None),
     confirm_password: Optional[str] = Form(None),
     profile_image: Optional[UploadFile] = File(None),
+    # Doctor specific fields
+    license_number: Optional[str] = Form(None),
+    specialization: Optional[str] = Form(None),
+    experience_years: Optional[int] = Form(None),
+    consultation_fee: Optional[float] = Form(None),
     db: Session = Depends(get_db),
     authenticated_user: models.User = Depends(get_authenticated_user)
 ):
@@ -219,6 +228,27 @@ async def update_user_profile(
         user.division_id = division_id
         user.district_id = district_id
         user.thana_id = thana_id
+
+        # Handle doctor specific fields
+        if user.user_type == models.UserType.DOCTOR:
+            if license_number and specialization and experience_years is not None and consultation_fee is not None:
+                doctor_profile = UserService.get_doctor_profile(db, user.id)
+                if doctor_profile:
+                    # Update existing doctor profile
+                    doctor_profile.license_number = license_number
+                    doctor_profile.specialization = specialization
+                    doctor_profile.experience_years = experience_years
+                    doctor_profile.consultation_fee = consultation_fee
+                else:
+                    # Create new doctor profile
+                    doctor_profile = models.DoctorProfile(
+                        user_id=user.id,
+                        license_number=license_number,
+                        specialization=specialization,
+                        experience_years=experience_years,
+                        consultation_fee=consultation_fee
+                    )
+                    db.add(doctor_profile)
 
         db.commit()
 

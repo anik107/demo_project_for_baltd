@@ -7,24 +7,373 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .navbar-brand { font-weight: bold; color: #3498db !important; }
-        .main-content { background-color: #f8f9fa; min-height: 100vh; padding: 20px; }
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --secondary-color: #34495e;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-color) !important;
+            font-size: 1.3rem;
+        }
+
+        .navbar {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95) !important;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .main-content {
+            background: transparent;
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
         .form-card {
-            background: white; border-radius: 10px; padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 40px;
+            box-shadow: var(--card-shadow);
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
         }
-        .profile-image-section { text-align: center; margin-bottom: 30px; }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+        }
+
+        .profile-image-section {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
         .profile-image {
-            width: 150px; height: 150px; border-radius: 50%; object-fit: cover;
-            border: 4px solid #3498db; margin-bottom: 15px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 6px solid var(--primary-color);
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+            transition: transform 0.3s ease;
         }
+
+        .profile-image:hover {
+            transform: scale(1.05);
+        }
+
         .profile-placeholder {
-            width: 150px; height: 150px; border-radius: 50%; background-color: #ecf0f1;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 15px; border: 4px solid #bdc3c7;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 6px solid #bdc3c7;
+            box-shadow: 0 8px 25px rgba(189, 195, 199, 0.3);
+            transition: transform 0.3s ease;
         }
-        .btn-primary { background-color: #3498db; border-color: #3498db; }
-        .btn-primary:hover { background-color: #2980b9; border-color: #2980b9; }
+
+        .profile-placeholder:hover {
+            transform: scale(1.05);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+
+        .section-header i {
+            margin-right: 10px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .section-header h5 {
+            margin: 0;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background-color: #fafbfc;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+            background-color: white;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-text {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            border: none;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark), #1f5f99);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .doctor-section {
+            background: linear-gradient(135deg, #f8f9ff, #e8f4ff);
+            border: 2px solid #e3f2fd;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .doctor-section::before {
+            content: '👨‍⚕️';
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: white;
+            padding: 0 15px;
+            font-size: 1.5rem;
+        }
+
+        .doctor-section h5 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .password-section {
+            background: linear-gradient(135deg, #fff8f0, #ffecdf);
+            border: 2px solid #ffe4cc;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .password-section::before {
+            content: '🔒';
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: white;
+            padding: 0 15px;
+            font-size: 1.5rem;
+        }
+
+        .address-section {
+            background: linear-gradient(135deg, #f0fff8, #e0f7ef);
+            border: 2px solid #c8f7c5;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .address-section::before {
+            content: '📍';
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: white;
+            padding: 0 15px;
+            font-size: 1.5rem;
+        }
+
+        .form-actions {
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-top: 30px;
+            text-align: right;
+        }
+
+        .user-type-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .file-upload-area {
+            position: relative;
+            border: 2px dashed #dee2e6;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background: #f0f8ff;
+        }
+
+        .file-upload-area.dragover {
+            border-color: var(--success-color);
+            background: #f0fff4;
+        }
+
+        .required-asterisk {
+            color: var(--danger-color);
+            margin-left: 3px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .timeslot-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .timeslot-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 10px rgba(52, 152, 219, 0.1);
+        }
+
+        .add-timeslot-btn {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .add-timeslot-btn:hover {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .form-card {
+                margin: 0 10px;
+                padding: 25px;
+            }
+
+            .profile-image, .profile-placeholder {
+                width: 120px;
+                height: 120px;
+            }
+
+            .form-actions {
+                text-align: center;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -62,78 +411,147 @@
                     {% endif %}
                     <div>
                         <h5>{{ user.full_name }}</h5>
-                        <p class="text-muted">{{ user.user_type.value.title() }}</p>
+                        <span class="user-type-badge">{{ user.user_type.value.title() }}</span>
                     </div>
                 </div>
 
                 <form method="POST" action="/api/users/{{ user.id }}/edit" id="profileForm" enctype="multipart/form-data">
-                    <h5 class="mb-4"><i class="fas fa-user"></i> Personal Information</h5>
+                    <!-- Personal Information Section -->
+                    <div class="section-header">
+                        <i class="fas fa-user"></i>
+                        <h5>Personal Information</h5>
+                    </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="full_name" class="form-label">Full Name *</label>
+                            <label for="full_name" class="form-label">Full Name<span class="required-asterisk">*</span></label>
                             <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.full_name }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email Address *</label>
+                            <label for="email" class="form-label">Email Address<span class="required-asterisk">*</span></label>
                             <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="mobile_number" class="form-label">Mobile Number *</label>
+                            <label for="mobile_number" class="form-label">Mobile Number<span class="required-asterisk">*</span></label>
                             <input type="text" class="form-control" id="mobile_number" name="mobile_number"
                                    value="{{ user.mobile_number }}" pattern="^\+8801[0-9]{9}$" required>
-                            <div class="form-text">Format: +8801XXXXXXXXX</div>
+                            <div class="form-text">📱 Format: +8801XXXXXXXXX</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="profile_image" class="form-label">Profile Image</label>
-                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/jpeg,image/png,image/jpg">
-                            <div class="form-text">JPG, PNG only, max 5MB</div>
+                            <div class="file-upload-area">
+                                <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/jpeg,image/png,image/jpg">
+                                <div class="form-text">📸 JPG, PNG only, max 5MB</div>
+                            </div>
                         </div>
                     </div>
 
-                    <hr class="my-4">
-                    <h5 class="mb-4"><i class="fas fa-map-marker-alt"></i> Address Information</h5>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="division_id" class="form-label">Division *</label>
-                            <select class="form-select" id="division_id" name="division_id" required>
-                                <option value="">Select Division</option>
-                            </select>
+                    <!-- Address Information Section -->
+                    <div class="address-section">
+                        <div class="section-header">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <h5>Address Information</h5>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="district_id" class="form-label">District *</label>
-                            <select class="form-select" id="district_id" name="district_id" required>
-                                <option value="">Select District</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="thana_id" class="form-label">Thana *</label>
-                            <select class="form-select" id="thana_id" name="thana_id" required>
-                                <option value="">Select Thana</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-                    <h5 class="mb-4"><i class="fas fa-lock"></i> Change Password (Optional)</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="current_password" class="form-label">Current Password</label>
-                            <input type="password" class="form-control" id="current_password" name="current_password">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="new_password" class="form-label">New Password</label>
-                            <input type="password" class="form-control" id="new_password" name="new_password">
-                            <div class="form-text">Min 8 chars, 1 uppercase, 1 digit, 1 special char</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="confirm_password" class="form-label">Confirm New Password</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="division_id" class="form-label">Division<span class="required-asterisk">*</span></label>
+                                <select class="form-select" id="division_id" name="division_id" required>
+                                    <option value="">Select Division</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="district_id" class="form-label">District<span class="required-asterisk">*</span></label>
+                                <select class="form-select" id="district_id" name="district_id" required>
+                                    <option value="">Select District</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="thana_id" class="form-label">Thana<span class="required-asterisk">*</span></label>
+                                <select class="form-select" id="thana_id" name="thana_id" required>
+                                    <option value="">Select Thana</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end mt-4">
-                        <a href="/dashboard" class="btn btn-secondary me-2">Cancel</a>
-                        <button type="submit" class="btn btn-primary">
+                    <!-- Doctor Specific Fields -->
+                    {% if user.user_type == 'DOCTOR' %}
+                        <div class="doctor-section">
+                            <div class="section-header">
+                                <i class="fas fa-user-md"></i>
+                                <h5>Doctor Information</h5>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="licenseNumber" class="form-label">Medical License Number<span class="required-asterisk">*</span></label>
+                                    <input type="text" class="form-control" id="licenseNumber" name="license_number"
+                                           value="{{ user.doctor_profile.license_number if user.doctor_profile else '' }}" required>
+                                    <span class="error-message" id="licenseNumberError"></span>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="specialization" class="form-label">Specialization<span class="required-asterisk">*</span></label>
+                                    <input type="text" class="form-control" id="specialization" name="specialization"
+                                           value="{{ user.doctor_profile.specialization if user.doctor_profile else '' }}" required>
+                                    <span class="error-message" id="specializationError"></span>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="experienceYears" class="form-label">Years of Experience<span class="required-asterisk">*</span></label>
+                                    <input type="number" class="form-control" id="experienceYears" name="experience_years"
+                                           value="{{ user.doctor_profile.experience_years if user.doctor_profile else '' }}" min="0" required>
+                                    <span class="error-message" id="experienceYearsError"></span>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="consultationFee" class="form-label">Consultation Fee (BDT)<span class="required-asterisk">*</span></label>
+                                    <input type="number" class="form-control" id="consultationFee" name="consultation_fee"
+                                           value="{{ user.doctor_profile.consultation_fee if user.doctor_profile else '' }}" min="0" step="0.01" required>
+                                    <span class="error-message" id="consultationFeeError"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Available Timeslots<span class="required-asterisk">*</span></label>
+                                <div class="timeslots-container" id="timeslotsContainer">
+                                    <!-- Dynamic timeslots will be added here -->
+                                </div>
+                                <button type="button" class="add-timeslot-btn" onclick="addTimeslot()">
+                                    <i class="fas fa-plus"></i> Add Timeslot
+                                </button>
+                                <span class="error-message" id="timeslotsError"></span>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Password Section -->
+                    <div class="password-section">
+                        <div class="section-header">
+                            <i class="fas fa-lock"></i>
+                            <h5>Change Password (Optional)</h5>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="current_password" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="current_password" name="current_password">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="new_password" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="new_password" name="new_password">
+                                <div class="form-text">🔐 Min 8 chars, 1 uppercase, 1 digit, 1 special char</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <a href="/dashboard" class="btn btn-secondary me-3">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
                             <i class="fas fa-save"></i> Update Profile
                         </button>
                     </div>
@@ -150,12 +568,120 @@
             thana_id: {{ user.thana_id if user.thana_id else 'null' }}
         };
 
-        document.addEventListener('DOMContentLoaded', loadDivisions);
+        let timeslotCounter = 0;
 
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDivisions();
+            initializeTimeslots();
+            setupFileUpload();
+        });
+
+        // Timeslot Management
+        function addTimeslot() {
+            timeslotCounter++;
+            const container = document.getElementById('timeslotsContainer');
+            const timeslotDiv = document.createElement('div');
+            timeslotDiv.className = 'timeslot-item';
+            timeslotDiv.innerHTML = `
+                <div class="row align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Day</label>
+                        <select class="form-select" name="timeslot_day_${timeslotCounter}" required>
+                            <option value="">Select Day</option>
+                            <option value="monday">Monday</option>
+                            <option value="tuesday">Tuesday</option>
+                            <option value="wednesday">Wednesday</option>
+                            <option value="thursday">Thursday</option>
+                            <option value="friday">Friday</option>
+                            <option value="saturday">Saturday</option>
+                            <option value="sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Start Time</label>
+                        <input type="time" class="form-control" name="timeslot_start_${timeslotCounter}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">End Time</label>
+                        <input type="time" class="form-control" name="timeslot_end_${timeslotCounter}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-outline-danger" onclick="removeTimeslot(this)">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(timeslotDiv);
+        }
+
+        function removeTimeslot(button) {
+            button.closest('.timeslot-item').remove();
+        }
+
+        function initializeTimeslots() {
+            // Add at least one timeslot if doctor
+            if (document.getElementById('timeslotsContainer')) {
+                addTimeslot();
+            }
+        }
+
+        // File Upload Enhancement
+        function setupFileUpload() {
+            const fileUploadArea = document.querySelector('.file-upload-area');
+            const fileInput = document.getElementById('profile_image');
+
+            if (fileUploadArea && fileInput) {
+                fileUploadArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('dragover');
+                });
+
+                fileUploadArea.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+                });
+
+                fileUploadArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('dragover');
+
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        fileInput.files = files;
+                        validateFile(files[0]);
+                    }
+                });
+            }
+        }
+
+        function validateFile(file) {
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('File size must be less than 5MB', 'error');
+                document.getElementById('profile_image').value = '';
+                return false;
+            }
+
+            if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+                showNotification('Only JPG and PNG files are allowed', 'error');
+                document.getElementById('profile_image').value = '';
+                return false;
+            }
+
+            return true;
+        }
+
+        // Location Functions
         async function fetchData(url) {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`Failed to fetch ${url}`);
-            return response.json();
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+                return response.json();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                showNotification('Error loading location data', 'error');
+                return [];
+            }
         }
 
         async function populateSelect(selectId, options, currentValue = null) {
@@ -201,7 +727,7 @@
             }
         }
 
-        // Event listeners
+        // Event listeners for location dropdowns
         document.getElementById('division_id').addEventListener('change', function() {
             document.getElementById('district_id').innerHTML = '<option value="">Select District</option>';
             document.getElementById('thana_id').innerHTML = '<option value="">Select Thana</option>';
@@ -213,51 +739,96 @@
             if (this.value) loadThanas(this.value);
         });
 
+        // Notification System
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
+            notification.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
         // Form validation and submission
         document.getElementById('profileForm').addEventListener('submit', async function(e) {
-            e.preventDefault(); // Prevent default form submission
+            e.preventDefault();
 
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+
+            // Show loading state
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+
+            try {
+                // Validate form
+                if (!validateForm()) {
+                    return;
+                }
+
+                // Submit form
+                await submitFormWithToken();
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                showNotification('Error updating profile. Please try again.', 'error');
+            } finally {
+                // Restore button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+            }
+        });
+
+        function validateForm() {
             const mobile = document.getElementById('mobile_number').value;
             const currentPassword = document.getElementById('current_password').value;
             const newPassword = document.getElementById('new_password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
 
             if (!/^\+8801[0-9]{9}$/.test(mobile)) {
-                alert('Mobile number must be in format +8801XXXXXXXXX');
-                return;
+                showNotification('Mobile number must be in format +8801XXXXXXXXX', 'error');
+                document.getElementById('mobile_number').focus();
+                return false;
             }
 
             if (currentPassword || newPassword || confirmPassword) {
                 if (!currentPassword || !newPassword) {
-                    alert('Both current and new passwords are required');
-                    return;
+                    showNotification('Both current and new passwords are required', 'error');
+                    return false;
                 }
                 if (newPassword !== confirmPassword) {
-                    alert('New password and confirm password do not match');
-                    return;
+                    showNotification('New password and confirm password do not match', 'error');
+                    return false;
                 }
                 if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(newPassword)) {
-                    alert('Password must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 digit, and 1 special character');
-                    return;
+                    showNotification('Password must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 digit, and 1 special character', 'error');
+                    return false;
                 }
             }
 
-            // Submit form with bearer token
-            await submitFormWithToken();
-        });
+            return true;
+        }
 
-        // Function to get auth token from localStorage
+        // Authentication functions
         function getAuthToken() {
             return localStorage.getItem('access_token');
         }
 
-        // Function to submit form with bearer token
         async function submitFormWithToken() {
             try {
                 const token = getAuthToken();
                 if (!token) {
-                    alert('Authentication token not found. Please login again.');
-                    window.location.href = '/login';
+                    showNotification('Authentication token not found. Please login again.', 'error');
+                    setTimeout(() => window.location.href = '/login', 2000);
                     return;
                 }
 
@@ -272,53 +843,55 @@
                 });
 
                 if (response.ok) {
-                    // Check if response is a redirect
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                    } else {
-                        // Success - redirect to dashboard
-                        window.location.href = '/dashboard?success=Profile updated successfully';
-                    }
+                    showNotification('Profile updated successfully!', 'success');
+                    setTimeout(() => {
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            window.location.href = '/dashboard?success=Profile updated successfully';
+                        }
+                    }, 1500);
                 } else if (response.status === 401) {
-                    // Unauthorized - token might be expired
-                    alert('Your session has expired. Please login again.');
+                    showNotification('Your session has expired. Please login again.', 'error');
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('user_data');
-                    window.location.href = '/login';
+                    setTimeout(() => window.location.href = '/login', 2000);
                 } else if (response.status === 403) {
-                    alert('You do not have permission to edit this profile.');
+                    showNotification('You do not have permission to edit this profile.', 'error');
                 } else {
-                    // Try to get error message from response
                     try {
                         const errorData = await response.json();
-                        alert(`Error: ${errorData.detail || 'Unknown error occurred'}`);
+                        showNotification(`Error: ${errorData.detail || 'Unknown error occurred'}`, 'error');
                     } catch {
-                        const errorText = await response.text();
-                        console.error('Error response:', errorText);
-                        alert('Error updating profile. Please try again.');
+                        showNotification('Error updating profile. Please try again.', 'error');
                     }
                 }
             } catch (error) {
                 console.error('Error submitting form:', error);
-                alert('Error updating profile. Please check your connection and try again.');
+                showNotification('Error updating profile. Please check your connection and try again.', 'error');
             }
         }
 
         // File validation
         document.getElementById('profile_image').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if (!file) return;
-
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
-                this.value = '';
-                return;
-            }
-
-            if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-                alert('Only JPG and PNG files are allowed');
+            if (file && !validateFile(file)) {
                 this.value = '';
             }
+        });
+
+        // Add smooth scrolling to sections
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
         });
     </script>
 </body>
