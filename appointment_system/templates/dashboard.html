@@ -96,6 +96,36 @@
             margin-bottom: 20px;
         }
 
+        /* Doctor Profile Styles */
+        .doctor-profile-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+        }
+
+        .doctor-profile-info h5 {
+            color: #007bff;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .doctor-profile-info p {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .available-timeslots {
+            margin-top: 10px;
+        }
+
+        .available-timeslots .badge {
+            font-size: 0.85em;
+            padding: 6px 10px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
         /* Notification Panel Styles */
         .notification-panel {
             position: fixed;
@@ -544,6 +574,49 @@
         // Override the original loadUserInfo function to work with new layout
         const originalLoadUserInfo = window.loadUserInfo || function() {};
 
+        // Helper function to generate doctor profile HTML
+        function getDoctorProfileHtml(userData) {
+            if (userData.user_type === 'DOCTOR' && userData.doctor_profile) {
+                const doctorProfile = userData.doctor_profile;
+
+                // Format available timeslots
+                let timeslotsHtml = '';
+                if (doctorProfile.available_timeslots && doctorProfile.available_timeslots.length > 0) {
+                    const availableSlots = doctorProfile.available_timeslots.filter(slot => slot.is_available);
+                    if (availableSlots.length > 0) {
+                        timeslotsHtml = availableSlots.map(slot =>
+                            `<span class="badge bg-primary me-1 mb-1">${slot.start_time} - ${slot.end_time}</span>`
+                        ).join('');
+                    } else {
+                        timeslotsHtml = '<span class="text-muted">No available time slots</span>';
+                    }
+                } else {
+                    timeslotsHtml = '<span class="text-muted">No time slots configured</span>';
+                }
+
+                return `
+                    <div class="doctor-profile-info mt-3">
+                        <h5 class="text-primary"><i class="fas fa-user-md me-2"></i>Doctor Profile</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong><i class="fas fa-stethoscope me-1"></i> Specialization:</strong> ${doctorProfile.specialization || 'Not specified'}</p>
+                                <p><strong><i class="fas fa-id-card me-1"></i> License Number:</strong> ${doctorProfile.license_number || 'Not available'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong><i class="fas fa-calendar-alt me-1"></i> Experience:</strong> ${doctorProfile.experience_years || '0'} years</p>
+                                <p><strong><i class="fas fa-money-bill me-1"></i> Consultation Fee:</strong> ৳${doctorProfile.consultation_fee || '0'}</p>
+                            </div>
+                        </div>
+                        <div class="available-timeslots mt-2">
+                            <strong><i class="fas fa-clock me-1"></i> Available Time Slots:</strong><br>
+                            ${timeslotsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+            return '';
+        }
+
         function loadUserInfo() {
             const userData = getUserData();
             const userInfoContainer = document.getElementById('userInfo');
@@ -598,13 +671,13 @@
                                     <p><strong><i class="fas fa-clock"></i> Member Since:</strong> ${userData.created_at ? new Date(userData.created_at).toLocaleDateString() : 'Recently'}</p>
                                 </div>
                             </div>
+                            ${getDoctorProfileHtml(userData)}
                         </div>
                     </div>
                 `;
 
                 // Show doctor-specific elements if user is a doctor
                 if (userData.user_type === 'DOCTOR') {
-                    debugger
                     const sidebarDoctorTools = document.getElementById('sidebarDoctorTools');
                     const doctorQuickActions = document.getElementById('doctorQuickActions');
                     const my_appointments = document.getElementById('my_appointments')

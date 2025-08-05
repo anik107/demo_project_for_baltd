@@ -267,7 +267,7 @@ async def register_user_with_file(
             detail="Registration failed"
         )
 
-@router.get("/dashboard", response_model=UserSchema)
+@router.get("/dashboard")
 async def get_dashboard_data(
     current_user: UserSchema = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -281,7 +281,22 @@ async def get_dashboard_data(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
-        return UserSchema.model_validate(user)
+
+        # For all user types, return the user data
+        # For doctors, we could include additional doctor profile data if needed
+        if user.user_type == "DOCTOR":
+            doctor_data = UserService.get_doctor_profile(db, user.id)
+            if doctor_data:
+                from schemas import DoctorProfile
+                return {
+                    "user": UserSchema.model_validate(user),
+                    "doctor_profile": DoctorProfile.model_validate(doctor_data)
+                }
+            else:
+                # Doctor doesn't have a profile yet, just return user data
+                return UserSchema.model_validate(user)
+        else:
+            return UserSchema.model_validate(user)
 
     except HTTPException:
         raise

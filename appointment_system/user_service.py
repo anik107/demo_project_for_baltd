@@ -126,6 +126,13 @@ class UserService:
             raise ValueError("Selected thana does not belong to the selected district")
 
     @staticmethod
+    def get_doctor_profile(db: Session, user_id: int) -> Optional[DoctorProfile]:
+        from sqlalchemy.orm import joinedload
+        return db.query(DoctorProfile).options(
+            joinedload(DoctorProfile.available_timeslots)
+        ).filter(DoctorProfile.user_id == user_id).first()
+
+    @staticmethod
     def _create_doctor_profile(db: Session, user_id: int, doctor_data: DoctorProfileCreate) -> DoctorProfile:
         """
         Create doctor profile with validation

@@ -65,6 +65,7 @@ class DoctorTimeslot(DoctorTimeslotBase):
 
 class DoctorProfileBase(BaseModel):
     license_number: str
+    specialization: str
     experience_years: int = Field(..., ge=0, description="Experience in years")
     consultation_fee: float = Field(..., ge=0, description="Consultation fee")
 

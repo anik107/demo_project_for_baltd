@@ -60,6 +60,42 @@ function loadUserInfo() {
             `;
         }
 
+        // Create doctor-specific information if user is a doctor
+        let doctorInfoHtml = '';
+        if (userData.user_type === 'DOCTOR' && userData.doctor_profile) {
+            const doctorProfile = userData.doctor_profile;
+
+            // Format available timeslots
+            let timeslotsHtml = '';
+            if (doctorProfile.available_timeslots && doctorProfile.available_timeslots.length > 0) {
+                const availableSlots = doctorProfile.available_timeslots.filter(slot => slot.is_available);
+                if (availableSlots.length > 0) {
+                    timeslotsHtml = availableSlots.map(slot =>
+                        `<span class="badge bg-primary me-1 mb-1">${slot.start_time} - ${slot.end_time}</span>`
+                    ).join('');
+                } else {
+                    timeslotsHtml = '<span class="text-muted">No available time slots</span>';
+                }
+            } else {
+                timeslotsHtml = '<span class="text-muted">No time slots configured</span>';
+            }
+
+            doctorInfoHtml = `
+                <div class="doctor-profile-info mt-3">
+                    <hr>
+                    <h5 class="text-primary"><i class="fas fa-user-md me-2"></i>Doctor Profile</h5>
+                    <p><strong>Specialization:</strong> ${doctorProfile.specialization || 'Not specified'}</p>
+                    <p><strong>License Number:</strong> ${doctorProfile.license_number || 'Not available'}</p>
+                    <p><strong>Experience:</strong> ${doctorProfile.experience_years || '0'} years</p>
+                    <p><strong>Consultation Fee:</strong> ৳${doctorProfile.consultation_fee || '0'}</p>
+                    <div class="available-timeslots">
+                        <strong>Available Time Slots:</strong><br>
+                        ${timeslotsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
         userInfoContainer.innerHTML = `
             <div class="user-card">
                 ${profileImageHtml}
@@ -68,6 +104,7 @@ function loadUserInfo() {
                     <p><strong>Email:</strong> ${userData.email || 'Not available'}</p>
                     <p><strong>User Type:</strong> ${userData.user_type || 'Not specified'}</p>
                     <p><strong>Mobile:</strong> ${userData.mobile_number || 'Not provided'}</p>
+                    ${doctorInfoHtml}
                 </div>
             </div>
         `;
@@ -89,6 +126,7 @@ function loadUserInfo() {
 // Function to fetch user data from server if not in localStorage
 async function fetchUserDataFromServer() {
     try {
+        debugger
         const token = getAuthToken();
         if (!token) {
             console.log('No auth token, redirecting to login');
@@ -131,7 +169,26 @@ async function fetchUserDataFromServer() {
 
         const userData = await response.json();
         console.log('Fetched user data from server:', userData);
-        console.log('Profile image in fetched data:', userData.profile_image_filename);
+
+        // Handle different response structures based on user type
+        let processedUserData;
+        if (userData.user && userData.doctor_profile) {
+            // Doctor user with profile data
+            processedUserData = {
+                ...userData.user,
+                doctor_profile: userData.doctor_profile
+            };
+            console.log('Doctor profile data:', userData.doctor_profile);
+        } else if (userData.user) {
+            // Doctor user without profile data
+            processedUserData = userData.user;
+        } else {
+            // Regular user or direct user data
+            processedUserData = userData;
+        }
+
+        console.log('Processed user data:', processedUserData);
+        console.log('Profile image in processed data:', processedUserData.profile_image_filename);
         const userAppointments = await fetch(`${API_BASE_URL}/auth/appointments_count`, {
             method: 'GET',
             headers: {
@@ -173,8 +230,8 @@ async function fetchUserDataFromServer() {
         document.getElementById('available-doctors').textContent = doctorCountData || '0';
 
 
-        // Store the user data for future use
-        localStorage.setItem('user_data', JSON.stringify(userData));
+        // Store the processed user data for future use
+        localStorage.setItem('user_data', JSON.stringify(processedUserData));
 
         // Update the UI
         loadUserInfo();
