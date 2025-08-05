@@ -126,7 +126,6 @@ function loadUserInfo() {
 // Function to fetch user data from server if not in localStorage
 async function fetchUserDataFromServer() {
     try {
-        debugger
         const token = getAuthToken();
         if (!token) {
             console.log('No auth token, redirecting to login');
@@ -927,6 +926,31 @@ function refreshNotifications() {
     loadNotifications();
 }
 
+// Fetch today's appointments count for doctors
+async function fetchTodaysAppointmentsCount() {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            console.error('No auth token available');
+            return 0;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/appointments/today/count`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!response.ok) throw new Error('Failed to fetch today\'s appointments count');
+        const count = await response.json();
+        return count;
+    } catch (error) {
+        console.error('Error fetching today\'s appointments count:', error);
+        return 0;
+    }
+}
+
 // Make notification panel functions available globally
 window.toggleNotificationPanel = toggleNotificationPanel;
 window.openNotificationPanel = openNotificationPanel;
@@ -934,3 +958,4 @@ window.closeNotificationPanel = closeNotificationPanel;
 window.markNotificationAsRead = markNotificationAsRead;
 window.markAllAsRead = markAllAsRead;
 window.refreshNotifications = refreshNotifications;
+window.fetchTodaysAppointmentsCount = fetchTodaysAppointmentsCount;

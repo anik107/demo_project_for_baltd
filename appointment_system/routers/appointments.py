@@ -4,7 +4,7 @@ from typing import List, Optional
 from datetime import date
 from database import SessionLocal
 from schemas import AppointmentCreate, AppointmentUpdate, AppointmentResponse
-from models import AppointmentStatus
+from models import Appointment, AppointmentStatus
 from appointment_service import AppointmentService
 from notification_service import NotificationService
 from auth_utils import get_current_user
@@ -93,6 +93,34 @@ async def get_appointments(
         date_from=date_from,
         date_to=date_to
     )
+
+@router.get("/today/count", response_model=int)
+async def get_todays_appointments_count(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.user_type != "DOCTOR":
+        raise HTTPException(
+            status_code=403,
+            detail="Only doctors can view today's appointments count"
+        )
+
+    from models import DoctorProfile
+
+    # Get the doctor profile for the current user
+    doctor_profile = db.query(DoctorProfile).filter(
+        DoctorProfile.user_id == current_user.id
+    ).first()
+
+    if not doctor_profile:
+        raise HTTPException(status_code=404, detail="Doctor profile not found")
+
+    today = date.today()
+    count = db.query(Appointment).filter(
+        Appointment.doctor_id == doctor_profile.id,
+        Appointment.appointment_date == today
+    ).count()
+    return count
 
 @router.get("/{appointment_id}", response_model=AppointmentResponse)
 async def get_appointment(

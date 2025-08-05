@@ -615,8 +615,7 @@
             }
             return '';
         }
-
-        function loadUserInfo() {
+        async function loadUserInfo() {
             const userData = getUserData();
             const userInfoContainer = document.getElementById('userInfo');
             const userGreeting = document.getElementById('userGreeting');
@@ -677,6 +676,7 @@
 
                 // Show doctor-specific elements if user is a doctor
                 if (userData.user_type === 'DOCTOR') {
+                    const todaysPatientCount = await fetchTodaysAppointmentsCount();
                     const sidebarDoctorTools = document.getElementById('sidebarDoctorTools');
                     const doctorQuickActions = document.getElementById('doctorQuickActions');
                     const my_appointments = document.getElementById('my_appointments')
@@ -698,7 +698,7 @@
                                 <div class="stats-card doctor-patients">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h3 id="doctor-today-count">...</h3>
+                                            <h3 id="doctor-today-count">${todaysPatientCount}</h3>
                                             <p class="mb-0">Today's Patients</p>
                                         </div>
                                         <i class="fas fa-user-injured fa-2x"></i>
